@@ -9,7 +9,7 @@ AirGuide is split into two packages: a React/TypeScript frontend at the project 
 
 ### Core framework
 
-<Columns cols={3}>
+<CardGroup cols={3}>
   <Card title="React 18.3.1" icon="react">
     Component model for the entire UI. Uses the new JSX transform (`react-jsx`) configured in `tsconfig.json`.
   </Card>
@@ -19,7 +19,7 @@ AirGuide is split into two packages: a React/TypeScript frontend at the project 
   <Card title="Vite 6.3.5" icon="bolt">
     Build tool and dev server. The `@` path alias resolves to `src/`. Supports raw imports for `.svg` and `.csv` files.
   </Card>
-</Columns>
+</CardGroup>
 
 ```typescript vite.config.ts
 import { defineConfig } from 'vite'
@@ -42,14 +42,14 @@ export default defineConfig({
 
 ### Styling
 
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card title="Tailwind CSS v4" icon="palette">
     Version 4.1.12, integrated via the `@tailwindcss/vite` plugin. Utility classes are the primary styling mechanism across all components.
   </Card>
   <Card title="tw-animate-css 1.3.8" icon="sparkles">
     Drop-in animation utilities for Tailwind. Used for entrance and exit animations on modals, dropdowns, and panels.
   </Card>
-</Columns>
+</CardGroup>
 
 CSS custom properties from the design system are consumed directly in component styles using the `var(--token-name)` pattern.
 
@@ -91,17 +91,17 @@ AirGuide uses two component libraries together:
 
 ### Mapping
 
-<Columns cols={3}>
+<CardGroup cols={3}>
   <Card title="leaflet 1.9.4" icon="map-pin">
     Core mapping engine. Renders the interactive campus map with tile layers, markers, and polygons.
   </Card>
   <Card title="react-leaflet 5.0.0" icon="map">
-    React bindings for Leaflet. Provides `<MapContainer>`, `<TileLayer>`, `<Marker>`, and related components.
+    React bindings for Leaflet. Installed alongside leaflet but the Map page uses the Leaflet `L` API directly for more control.
   </Card>
   <Card title="leaflet-routing-machine 3.2.12" icon="route">
-    Turn-by-turn routing overlay for Leaflet. Powers the campus navigation and route display features.
+    Turn-by-turn routing overlay for Leaflet. Powers the campus route display feature.
   </Card>
-</Columns>
+</CardGroup>
 
 ### Charts
 
@@ -109,7 +109,7 @@ AirGuide uses two component libraries together:
 
 ### Forms
 
-**react-hook-form 7.55.0** — Performant form state management with minimal re-renders. Used across all admin and data-entry forms.
+**react-hook-form 7.55.0** — Performant form state management with minimal re-renders. Installed as a dependency and available for use in forms.
 
 ### Animations
 
@@ -142,7 +142,7 @@ AirGuide uses two component libraries together:
 
 ## Backend
 
-<Columns cols={3}>
+<CardGroup cols={3}>
   <Card title="Node.js 22" icon="server">
     Runtime environment. Version pinned in `.nvmrc`.
   </Card>
@@ -152,7 +152,7 @@ AirGuide uses two component libraries together:
   <Card title="Prisma ORM" icon="database">
     Type-safe database client and migration tool. Connects to a PostgreSQL instance hosted on Prisma Cloud.
   </Card>
-</Columns>
+</CardGroup>
 
 ### Authentication
 
@@ -193,8 +193,7 @@ The design system is defined in `design-tokens.json` and exposed as CSS custom p
 
 Tokens are provided for both light and dark mode:
 
-<Columns cols={2}>
-  <Card title="Light mode" icon="sun">
+**Light mode tokens:**
 
 | Token | Value | Usage |
 |---|---|---|
@@ -210,8 +209,7 @@ Tokens are provided for both light and dark mode:
 | `--app-green` | `#10b981` | Success, confirmation |
 | `--app-red` | `#ef4444` | Error, destructive actions |
 
-  </Card>
-  <Card title="Dark mode" icon="moon">
+**Dark mode tokens:**
 
 | Token | Value | Usage |
 |---|---|---|
@@ -227,21 +225,7 @@ Tokens are provided for both light and dark mode:
 | `--app-green` | `#34d399` | Success, confirmation |
 | `--app-red` | `#f87171` | Error, destructive actions |
 
-  </Card>
-</Columns>
-
 Token switching is handled by `next-themes`. The `:root` and `.dark` selectors map to the light and dark token sets respectively.
-
-### Color palette
-
-<Color variant="compact">
-  <Color.Item name="--app-blue" value="#3b82f6" />
-  <Color.Item name="--app-green" value="#10b981" />
-  <Color.Item name="--app-red" value="#ef4444" />
-  <Color.Item name="--app-blue (dark)" value="#60a5fa" />
-  <Color.Item name="--app-green (dark)" value="#34d399" />
-  <Color.Item name="--app-red (dark)" value="#f87171" />
-</Color>
 
 ### Typography
 

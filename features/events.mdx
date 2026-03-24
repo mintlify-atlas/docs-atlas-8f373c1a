@@ -91,21 +91,21 @@ Status is derived at render time from the event's dates and `activo` flag — it
 | Status | Condition |
 |---|---|
 | **En curso** | `activo` is `true` and the current time is between `fecha_inicio` and `fecha_fin` |
-| **Próximo** | `fecha_inicio` is in the future |
-| **Finalizado** | `fecha_fin` is in the past, or `activo` is `false` |
+| **Próximo** | `fecha_inicio` is in the future **and** `activo` is `true` |
+| **Finalizado** | `fecha_fin` is in the past, `activo` is `false`, or neither of the above conditions match |
 
 ## Public vs private events
 
 The `publico` field controls event visibility.
 
-<Columns cols={2}>
-  <Card title="Public events" icon="globe" color="#10B981">
+<CardGroup cols={2}>
+  <Card title="Public events" icon="globe">
     Visible to all visitors including guests. Shown as green markers on the public map.
   </Card>
-  <Card title="Private events" icon="lock" color="#8B5CF6">
+  <Card title="Private events" icon="lock">
     Managed by administrators. Private events may be restricted to specific roles depending on your backend configuration.
   </Card>
-</Columns>
+</CardGroup>
 
 ## Marker info panel
 

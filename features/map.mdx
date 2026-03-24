@@ -111,14 +111,14 @@ Clicking any marker opens a slide-in info panel in the top-right corner of the m
 
 The top header adapts based on the current authentication state.
 
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card title="Guest" icon="user">
     A blue **Iniciar Sesión** button links to `/login`.
   </Card>
   <Card title="Logged in" icon="shield-halved">
     Shows the user's name and role badge, a **Cerrar Sesión** button, and — for admins — a **Dashboard** link to `/admin`.
   </Card>
-</Columns>
+</CardGroup>
 
 The user session is read from `AuthContext`, which hydrates from `localStorage` on page load.
 

@@ -5,7 +5,7 @@ description: Overview of AirGuide's system layers — frontend, backend API, dat
 
 AirGuide is a full-stack SaaS application. The frontend and backend run as separate processes and communicate over HTTP.
 
-<Columns cols={3}>
+<CardGroup cols={3}>
   <Card title="Frontend" icon="monitor">
     React 18 + Vite + TypeScript. Runs on port `5173`. Handles all UI, routing, and map rendering via Leaflet.
   </Card>
@@ -15,7 +15,7 @@ AirGuide is a full-stack SaaS application. The frontend and backend run as separ
   <Card title="Database" icon="database">
     PostgreSQL hosted on Prisma Cloud, accessed through Prisma ORM. Prisma Studio available for direct inspection.
   </Card>
-</Columns>
+</CardGroup>
 
 ## Frontend
 
@@ -60,7 +60,7 @@ The backend is an **Express** server written in Node.js. It serves a REST API un
 All protected endpoints require an `Authorization: Bearer <token>` header. The token is a signed JWT with expiry configured via `JWT_EXPIRES_IN`.
 
 <Note>
-  The frontend reads `VITE_API_URL` at build time. If unset, it falls back to `http://localhost:3001/api`. This is defined in `AuthContext.tsx`.
+  Every data hook reads `VITE_API_URL` at build time. If unset, it falls back to `http://localhost:3001/api`. This constant is defined at the top of each hook file: `const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'`.
 </Note>
 
 ## Database
@@ -107,14 +107,14 @@ sequenceDiagram
 
 ## Context providers
 
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card title="AuthContext" icon="lock">
     Provides `user`, `login`, `register`, `logout`, and `isAdmin`. Initialises from `localStorage` on mount so the session persists across page reloads. `isAdmin()` returns `true` when `user.rol === 'admin'`.
   </Card>
   <Card title="ThemeContext" icon="sun">
     Manages light/dark theme state across the application via `next-themes`.
   </Card>
-</Columns>
+</CardGroup>
 
 ## Data layer — custom hooks
 
@@ -130,5 +130,5 @@ All backend data fetching is encapsulated in custom React hooks exported from `s
 | `useSalones` | `Salon[]` | Classrooms within buildings. |
 
 <Tip>
-  Import hooks from the barrel export: `import { useEdificios, useEventos } from '@/app/hooks'`.
+  Hooks are imported via relative paths to the barrel export. From a page in `src/app/pages/`: `import { useEdificios, useEventos } from '../hooks'`. From a page in `src/app/pages/admin/`: `import { useEdificios } from '../../hooks'`.
 </Tip>
