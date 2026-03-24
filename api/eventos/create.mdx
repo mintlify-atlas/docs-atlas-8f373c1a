@@ -1,0 +1,103 @@
+---
+title: 'Create event'
+description: 'Create a new campus event. Requires admin authentication.'
+---
+
+## POST /api/eventos
+
+Creates a new event and returns the created `Evento` object.
+
+<Warning>
+  This endpoint requires a valid admin Bearer token in the `Authorization` header.
+</Warning>
+
+## Request
+
+**Headers**
+
+<ParamField path="header.Authorization" type="string" required>
+  Bearer token for admin authentication. Format: `Bearer <token>`.
+</ParamField>
+
+<ParamField path="header.Content-Type" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+**Body**
+
+<ParamField body="nombre" type="string" required>
+  Display name of the event.
+</ParamField>
+
+<ParamField body="descripcion" type="string">
+  Optional description of the event.
+</ParamField>
+
+<ParamField body="fecha_inicio" type="string" required>
+  Event start date in ISO 8601 format (e.g., `2026-04-10T09:00:00.000Z`).
+</ParamField>
+
+<ParamField body="fecha_fin" type="string" required>
+  Event end date in ISO 8601 format. Must be after `fecha_inicio`.
+</ParamField>
+
+<ParamField body="id_edificio" type="number" required>
+  ID of the building where the event takes place.
+</ParamField>
+
+<ParamField body="publico" type="boolean" default="true">
+  Whether the event is open to the public. Defaults to `true`.
+</ParamField>
+
+<ParamField body="activo" type="boolean" default="true">
+  Whether the event is active. Defaults to `true`.
+</ParamField>
+
+## Response
+
+Returns the newly created `Evento` object. See [List events](/api/eventos/list) for the full field reference.
+
+## Example
+
+```bash
+curl -X POST http://localhost:3001/api/eventos \
+  -H "Authorization: Bearer <your-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Feria de Ciencias",
+    "descripcion": "Exposición de proyectos estudiantiles.",
+    "fecha_inicio": "2026-05-15T09:00:00.000Z",
+    "fecha_fin": "2026-05-15T17:00:00.000Z",
+    "id_edificio": 2,
+    "publico": true,
+    "activo": true
+  }'
+```
+
+```json
+{
+  "id_evento": 12,
+  "nombre": "Feria de Ciencias",
+  "descripcion": "Exposición de proyectos estudiantiles.",
+  "fecha_inicio": "2026-05-15T09:00:00.000Z",
+  "fecha_fin": "2026-05-15T17:00:00.000Z",
+  "id_edificio": 2,
+  "publico": true,
+  "activo": true,
+  "edificio": {
+    "id_edificio": 2,
+    "nombre": "Facultad de Ingeniería",
+    "tipo": "academico",
+    "latitud": 19.4321,
+    "longitud": -99.1340
+  }
+}
+```
+
+## Error codes
+
+| Status | Description |
+|--------|-------------|
+| `400`  | Invalid or missing required fields. |
+| `401`  | Missing or invalid Bearer token. |
+| `500`  | Internal server error. |

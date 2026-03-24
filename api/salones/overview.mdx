@@ -1,0 +1,153 @@
+---
+title: 'Salones (Classrooms)'
+description: 'Overview of the Salones API for listing and managing campus classrooms.'
+---
+
+## Overview
+
+The Salones API lets you list and manage classrooms (salones) across all campus buildings. Each salon belongs to a building via the `id_edificio` foreign key.
+
+<Note>
+  Listing salones is a public operation. Creating, updating, and deleting records requires a valid admin Bearer token.
+</Note>
+
+## Data model
+
+<ResponseField name="id_salon" type="number" required>
+  Unique identifier for the classroom.
+</ResponseField>
+
+<ResponseField name="nombre" type="string" required>
+  Display name of the classroom (e.g., `"Aula 301"`).
+</ResponseField>
+
+<ResponseField name="capacidad" type="number" required>
+  Maximum seating capacity.
+</ResponseField>
+
+<ResponseField name="tipo" type="string" required>
+  Room type. One of: `aula`, `laboratorio`, `auditorio`, `oficina`.
+</ResponseField>
+
+<ResponseField name="id_edificio" type="number" required>
+  Foreign key referencing the building this classroom belongs to.
+</ResponseField>
+
+<ResponseField name="piso" type="number" required>
+  Floor number within the building.
+</ResponseField>
+
+<ResponseField name="activo" type="boolean" required>
+  Whether the classroom is currently in use.
+</ResponseField>
+
+<ResponseField name="edificio" type="object">
+  Nested building summary.
+  <Expandable title="properties">
+    <ResponseField name="id_edificio" type="number" required>
+      Unique identifier of the building.
+    </ResponseField>
+    <ResponseField name="nombre" type="string" required>
+      Building name.
+    </ResponseField>
+    <ResponseField name="tipo" type="string" required>
+      Building type (e.g., `academico`, `administrativo`).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/edificios/salones` | None | List all classrooms. |
+| `POST` | `/api/edificios/:id_edificio/salones` | Bearer | Create a classroom in a building. |
+| `PUT` | `/api/edificios/salones/:id` | Bearer | Update a classroom. |
+| `DELETE` | `/api/edificios/salones/:id` | Bearer | Delete a classroom. |
+
+## List all salones
+
+### GET /api/edificios/salones
+
+Returns an array of all `Salon` objects, each including the nested `edificio` record.
+
+```bash
+curl http://localhost:3001/api/edificios/salones
+```
+
+```json
+[
+  {
+    "id_salon": 1,
+    "nombre": "Aula 301",
+    "capacidad": 40,
+    "tipo": "aula",
+    "id_edificio": 3,
+    "piso": 3,
+    "activo": true,
+    "edificio": {
+      "id_edificio": 3,
+      "nombre": "Centro de Cómputo",
+      "tipo": "academico"
+    }
+  }
+]
+```
+
+## Create a salon
+
+### POST /api/edificios/:id_edificio/salones
+
+Creates a new classroom within the specified building.
+
+<Info>
+  Requires `Authorization: Bearer <token>` and `Content-Type: application/json`.
+</Info>
+
+**Required body fields:** `nombre`, `capacidad`, `tipo`, `piso`.
+
+```bash
+curl -X POST http://localhost:3001/api/edificios/3/salones \
+  -H "Authorization: Bearer <your-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Laboratorio A",
+    "capacidad": 25,
+    "tipo": "laboratorio",
+    "piso": 2,
+    "activo": true
+  }'
+```
+
+## Update a salon
+
+### PUT /api/edificios/salones/:id
+
+Updates an existing classroom. Send only the fields you want to modify.
+
+```bash
+curl -X PUT http://localhost:3001/api/edificios/salones/1 \
+  -H "Authorization: Bearer <your-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"capacidad": 50}'
+```
+
+## Delete a salon
+
+### DELETE /api/edificios/salones/:id
+
+Permanently removes a classroom. Returns `204 No Content` on success.
+
+```bash
+curl -X DELETE http://localhost:3001/api/edificios/salones/1 \
+  -H "Authorization: Bearer <your-token>"
+```
+
+## Error codes
+
+| Status | Description |
+|--------|-------------|
+| `400`  | Invalid or missing required fields. |
+| `401`  | Missing or invalid Bearer token. |
+| `404`  | Salon or building not found. |
+| `500`  | Internal server error. |

@@ -1,0 +1,70 @@
+---
+title: Searching the map
+description: How to use the search bar to filter buildings and events on the campus map in real time.
+keywords: ['search', 'filter', 'buildings', 'events', 'map', 'find']
+---
+
+The search bar lets you narrow down what appears on the map. As you type, AirGuide hides markers that don't match and keeps the ones that do — without reloading the page.
+
+## Using the search bar
+
+The search input sits in the header bar directly below the main navigation, spanning the full width of the page (max 2xl). It is always visible on the map page.
+
+Type any word or phrase into the bar. The map updates immediately — no need to press Enter.
+
+To clear the search and restore all markers, delete the text from the input.
+
+## What gets searched
+
+Every keystroke filters **both buildings and events at the same time**:
+
+| Data type | Fields searched |
+|---|---|
+| Buildings | `nombre` (name), `descripcion` (description) |
+| Events | `nombre` (name), `descripcion` (description) |
+
+The match is case-insensitive. Typing `AULA`, `aula`, or `Aula` all return the same results.
+
+## How filtering works
+
+The filter runs entirely on the client using data already loaded in memory. Here is the exact logic from `Map.tsx`:
+
+```typescript
+// Filtrar edificios y eventos según búsqueda
+const edificiosFiltrados = edificios.filter(e =>
+    e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+const eventosFiltrados = eventos.filter(e =>
+    e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
+);
+```
+
+Whenever `searchTerm` changes, the filtered arrays are recomputed and the map markers are fully replaced — non-matching markers are removed, matching markers remain.
+
+<Note>
+  Event markers are placed at the coordinates of the building they belong to. If a building is filtered out but one of its events matches your search, the event marker will still appear at that building's location.
+</Note>
+
+## Practical examples
+
+<CardGroup cols={2}>
+  <Card title="Find academic buildings" icon="building">
+    Type **aula** to show only buildings with "aula" in their name or description — useful for finding classrooms quickly.
+  </Card>
+  <Card title="Find a conference or event" icon="calendar">
+    Type part of a conference name (e.g., **congreso**) to surface matching events on the map without scrolling through a list.
+  </Card>
+  <Card title="Search by description keyword" icon="search">
+    If you know a building houses a specific department, try a keyword from its description (e.g., **sistemas** or **química**) to locate it.
+  </Card>
+  <Card title="Clear the filter" icon="x">
+    Delete all text from the search bar to restore every building and event marker to the map.
+  </Card>
+</CardGroup>
+
+<Tip>
+  Shorter search terms cast a wider net. If you're not finding what you expect, try a single keyword instead of a full phrase.
+</Tip>

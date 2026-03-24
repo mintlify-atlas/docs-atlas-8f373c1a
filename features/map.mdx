@@ -1,0 +1,151 @@
+---
+title: "Interactive map"
+description: "The AirGuide map is the main interface at `/`. It renders building and event markers on an OpenStreetMap base layer and provides search, marker details, route calculation, and a map legend."
+---
+
+The map loads at `/` for all visitors — no login required. Buildings and events are fetched automatically on page load and rendered as color-coded Leaflet markers.
+
+## Map overview
+
+<CardGroup cols={2}>
+  <Card title="Blue markers" icon="location-dot" color="#3B82F6">
+    Campus buildings (edificios), rendered with `edificioIcon` — a blue SVG pin with a white circle.
+  </Card>
+  <Card title="Green markers" icon="location-dot" color="#10B981">
+    Campus events (eventos), rendered with `eventoIcon` — a green SVG pin with a white circle.
+  </Card>
+  <Card title="Search bar" icon="magnifying-glass">
+    Filters both buildings and events in real time as you type — matches against name and description.
+  </Card>
+  <Card title="Route panel" icon="route">
+    Floating button in the bottom-right corner opens the route calculator between any two buildings.
+  </Card>
+</CardGroup>
+
+## Map initialization
+
+The map is initialized with the Leaflet `L` API directly (not react-leaflet). It centers on the university campus at coordinates `[20.656333, -100.404745]` with zoom level `15`.
+
+```tsx Map.tsx
+const map = L.map(mapContainerRef.current).setView([20.656333, -100.404745], 15);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+```
+
+Tiles are served by OpenStreetMap. The map container takes up the full remaining viewport height below the header and search bar.
+
+## Marker icons
+
+Both icon types are inline SVG data URIs created with `L.Icon`. They share the same shape — a teardrop pin with a white circle at the center — and differ only in color.
+
+```tsx Map.tsx
+const edificioIcon = new L.Icon({
+    iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
+      <path fill="#3B82F6" stroke="#1E40AF" stroke-width="2"
+        d="M16 0C7.163 0 0 7.163 0 16c0 8.837 16 26 16 26s16-17.163 16-26C32 7.163 24.837 0 16 0z"/>
+      <circle cx="16" cy="16" r="6" fill="white"/>
+    </svg>
+  `),
+    iconSize: [32, 42],
+    iconAnchor: [16, 42],
+    popupAnchor: [0, -42],
+});
+
+const eventoIcon = new L.Icon({
+    iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
+      <path fill="#10B981" stroke="#059669" stroke-width="2"
+        d="M16 0C7.163 0 0 7.163 0 16c0 8.837 16 26 16 26s16-17.163 16-26C32 7.163 24.837 0 16 0z"/>
+      <circle cx="16" cy="16" r="6" fill="white"/>
+    </svg>
+  `),
+    iconSize: [32, 42],
+    iconAnchor: [16, 42],
+    popupAnchor: [0, -42],
+});
+```
+
+## Search bar
+
+The search bar sits below the top header and filters visible markers in real time. It matches against both `nombre` and `descripcion` fields for buildings and events.
+
+```tsx Map.tsx
+const edificiosFiltrados = edificios.filter(e =>
+    e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+const eventosFiltrados = eventos.filter(e =>
+    e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
+);
+```
+
+When the search term changes, the marker layer is cleared and rebuilt with only the matching results. Clearing the search field restores all markers.
+
+## Marker info panel
+
+Clicking any marker opens a slide-in info panel in the top-right corner of the map. The panel shows different content depending on whether the marker is a building or an event.
+
+**For buildings:**
+
+- Name and a `tipo` badge (academico, administrativo, or recreativo)
+- Description (if present)
+- A 3-column counts grid showing the number of salones, cubículos, and eventos
+
+**For events:**
+
+- Name and a green calendar badge
+- Description (if present)
+- Start and end dates
+- Building name (the location where the event is held)
+
+<Note>
+  The panel includes a "Cómo llegar" (How to get there) button that is only visible to users with the `alumno` role. Guests see a prompt to log in for more route options.
+</Note>
+
+## Authentication-aware header
+
+The top header adapts based on the current authentication state.
+
+<Columns cols={2}>
+  <Card title="Guest" icon="user">
+    A blue **Iniciar Sesión** button links to `/login`.
+  </Card>
+  <Card title="Logged in" icon="shield-halved">
+    Shows the user's name and role badge, a **Cerrar Sesión** button, and — for admins — a **Dashboard** link to `/admin`.
+  </Card>
+</Columns>
+
+The user session is read from `AuthContext`, which hydrates from `localStorage` on page load.
+
+## Map legend
+
+A small legend panel is fixed to the bottom-left corner of the map. It identifies the two marker types:
+
+- Building icon (blue) — Edificios
+- Calendar icon (green) — Eventos
+
+## Loading state
+
+While building or event data is being fetched, a centered overlay with a spinning indicator and the label "Cargando mapa..." covers the map. The overlay is dismissed once both requests resolve.
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Buildings" icon="building" href="/features/buildings">
+    Data model, building types, and what the info panel shows.
+  </Card>
+  <Card title="Events" icon="calendar" href="/features/events">
+    Event data model, status labels, and public vs private events.
+  </Card>
+  <Card title="Routing" icon="route" href="/features/routing">
+    How to calculate a route between two campus buildings.
+  </Card>
+  <Card title="Admin dashboard" icon="gauge" href="/admin/dashboard">
+    Manage buildings and events through the admin interface.
+  </Card>
+</CardGroup>

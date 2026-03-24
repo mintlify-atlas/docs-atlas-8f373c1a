@@ -1,0 +1,126 @@
+---
+title: User validation
+description: How AirGuide handles new user registrations and the admin workflow for approving or rejecting pending accounts.
+---
+
+AirGuide uses a manual approval workflow for new registrations. Users cannot log in until an admin explicitly approves their account. This page explains how that workflow operates end-to-end.
+
+## Registration default state
+
+When a new user signs up, their account is created with `estado: 'pendiente'`. They cannot authenticate until their state is changed to `'activo'`.
+
+```ts
+// Usuario interface (useUsuarios.ts)
+interface Usuario {
+  id_usuario: number;
+  correo: string;
+  nombre: string;
+  matricula: string;
+  rol: 'admin' | 'alumno';
+  estado: 'pendiente' | 'activo' | 'rechazado';
+  fecha_registro: string;
+  fecha_validacion?: string | null;
+}
+```
+
+## Pending users table
+
+The [admin dashboard](/admin/dashboard) surfaces all `estado: 'pendiente'` accounts via `GET /api/auth/pending`. The table shows:
+
+| Column | Field |
+|---|---|
+| Nombre | `usuario.nombre` with avatar initial |
+| Correo | `usuario.correo` |
+| Matrícula | `usuario.matricula` (or `N/A` if absent) |
+| Fecha Registro | `usuario.fecha_registro` formatted with `toLocaleDateString()` |
+
+An orange badge in the section header shows the real-time pending count:
+
+```tsx
+<span className="px-3 py-1 bg-orange-100 text-orange-700 text-sm rounded-full">
+  {usuariosPendientes.length} pendientes
+</span>
+```
+
+The same count drives the orange indicator visible on the [analytics page](/admin/analytics).
+
+## Approval and rejection
+
+<Steps>
+  <Step title="Admin reviews the pending user">
+    The admin reads the user's name, email, and matricula in the dashboard table to verify identity.
+  </Step>
+  <Step title="Admin clicks Aprobar or Rechazar">
+    Both buttons call `handleValidarUsuario(usuario.id_usuario, estado)` where `estado` is `'activo'` or `'rechazado'`. A browser `confirm()` dialog asks for confirmation before the request is sent.
+  </Step>
+  <Step title="API call is made">
+    `validarUsuario` sends a `PUT` request to `PUT /api/auth/validate/:id` with the target state:
+
+    <CodeGroup>
+
+    ```http Approve user
+    PUT /api/auth/validate/:id
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    { "estado": "activo" }
+    ```
+
+    ```http Reject user
+    PUT /api/auth/validate/:id
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    { "estado": "rechazado" }
+    ```
+
+    </CodeGroup>
+  </Step>
+  <Step title="UI reflects the change">
+    On success, the user is removed from `usuariosPendientes` via a local state filter. The orange pending badge count decreases automatically. An `alert()` confirms the action to the admin.
+  </Step>
+</Steps>
+
+## Account states
+
+| Estado | Meaning | Can log in? |
+|---|---|---|
+| `pendiente` | Newly registered; awaiting review | No |
+| `activo` | Approved by admin | Yes |
+| `rechazado` | Rejected by admin | No |
+
+<Warning>
+  Rejection is not soft-deleted — the user record remains in the database with `estado: 'rechazado'`. If a rejected user needs access later, an admin must manually update their state via the API or database.
+</Warning>
+
+## `useUsuarios` hook reference
+
+The `useUsuarios` hook used on the dashboard exposes the following:
+
+```ts
+const {
+  usuarios,             // All users (from GET /api/auth/users)
+  usuariosPendientes,   // Pending users only (from GET /api/auth/pending)
+  loading,
+  error,
+  fetchUsuarios,
+  fetchUsuariosPendientes,
+  validarUsuario,       // PUT /api/auth/validate/:id
+} = useUsuarios();
+```
+
+Both fetch calls run automatically on mount when `autoFetch` is `true` (the default).
+
+## Best practices
+
+<Tip>
+  Review pending users daily — students who register before an exam period will be blocked until approved, which may generate support requests.
+</Tip>
+
+<Tip>
+  Cross-reference the `matricula` field against your institution's enrollment records before approving accounts to prevent unauthorized access.
+</Tip>
+
+<Note>
+  There is no email notification triggered by approval or rejection. Communicate decisions to users through your institution's existing channels.
+</Note>

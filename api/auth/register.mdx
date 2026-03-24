@@ -1,0 +1,112 @@
+---
+title: 'Register'
+description: 'Create a new user account. New accounts are placed in a pending state until an administrator approves them.'
+---
+
+## `POST /api/auth/register`
+
+Creates a new user account with the provided details. The account is immediately set to `estado: 'pendiente'` and cannot be used to log in until an administrator approves it.
+
+<Info>This endpoint does not require authentication.</Info>
+
+<Note>
+  **Approval workflow:** After registration, a user's `estado` is set to `pendiente`. An administrator must review and activate the account before the user can log in. Attempting to log in with a `pendiente` or `rechazado` account returns a `403` error.
+</Note>
+
+---
+
+## Request
+
+### Body
+
+<ParamField body="correo" type="string" required>
+  The user's email address. Must be unique.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's password.
+</ParamField>
+
+<ParamField body="nombre" type="string" required>
+  The user's full name.
+</ParamField>
+
+<ParamField body="matricula" type="string" required>
+  The student or staff ID number. Must be unique.
+</ParamField>
+
+---
+
+## Response
+
+### 201 — Created
+
+<ResponseField name="usuario" type="object" required>
+  The newly created user object.
+  <Expandable title="properties">
+    <ResponseField name="id" type="number">
+      Unique user identifier.
+    </ResponseField>
+    <ResponseField name="correo" type="string">
+      User's email address.
+    </ResponseField>
+    <ResponseField name="nombre" type="string">
+      User's full name.
+    </ResponseField>
+    <ResponseField name="matricula" type="string">
+      Student or staff ID number.
+    </ResponseField>
+    <ResponseField name="rol" type="string">
+      User role. Defaults to `alumno` for new registrations.
+    </ResponseField>
+    <ResponseField name="estado" type="string">
+      Always `pendiente` for newly registered accounts.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl --request POST \
+  --url http://localhost:3001/api/auth/register \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "correo": "nuevo@universidad.edu",
+    "password": "mypassword",
+    "nombre": "Ana García",
+    "matricula": "A01234567"
+  }'
+```
+
+```typescript TypeScript
+const response = await fetch('http://localhost:3001/api/auth/register', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    correo: 'nuevo@universidad.edu',
+    password: 'mypassword',
+    nombre: 'Ana García',
+    matricula: 'A01234567',
+  }),
+});
+
+const { usuario } = await response.json();
+// usuario.estado === 'pendiente'
+// Direct login is not possible until an admin approves the account.
+```
+
+</CodeGroup>
+
+---
+
+## Error codes
+
+| Status | Description |
+| --- | --- |
+| `400` | Missing or invalid request body fields. |
+| `409` | A user with the provided `correo` or `matricula` already exists. |

@@ -1,0 +1,70 @@
+---
+title: "Introduction"
+description: "AirGuide is a university campus navigation platform that helps students explore buildings, discover events, and calculate routes on an interactive map."
+---
+
+## What is AirGuide?
+
+AirGuide is a full-stack web application designed for university campuses. It provides an interactive map where students can locate buildings, find upcoming events, and get turn-by-turn directions between campus locations — all from a single interface.
+
+Administrators manage campus data through a dedicated dashboard, controlling which buildings, events, and classrooms appear on the map and approving new user registrations.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Set up AirGuide locally and get the frontend and backend running in minutes.
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/architecture">
+    Understand how the frontend, backend API, and database fit together.
+  </Card>
+  <Card title="Interactive Map" icon="map" href="/features/map">
+    Explore the core map view: markers, search, and the route calculator.
+  </Card>
+  <Card title="Admin Dashboard" icon="gauge" href="/admin/dashboard">
+    Learn how admins manage buildings, events, salones, and users.
+  </Card>
+</CardGroup>
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Interactive campus map" icon="map-pin">
+    Leaflet-powered map with blue markers for buildings and green markers for events. Click any marker to see details and counts.
+  </Card>
+  <Card title="Route calculation" icon="route">
+    Select an origin and destination building to calculate and display a walking route directly on the map.
+  </Card>
+  <Card title="Role-based access" icon="shield-halved">
+    Two roles — `admin` and `alumno` — with separate workflows. Admins approve new registrations before students can log in.
+  </Card>
+  <Card title="Admin dashboard" icon="table-columns">
+    Full CRUD management for buildings, events, and classrooms. Includes an analytics panel with charts and usage statistics.
+  </Card>
+  <Card title="Full-text search" icon="magnifying-glass">
+    Search bar on the map view filters both buildings and events in real time as you type.
+  </Card>
+  <Card title="Dark mode" icon="moon">
+    System-wide dark mode toggle with a consistent design system and CSS variable tokens.
+  </Card>
+</CardGroup>
+
+## User roles
+
+| Role | Access |
+|------|--------|
+| **Guest** | View the public map, see building and event markers |
+| **Alumno (Student)** | All guest access plus route navigation ("Cómo llegar") |
+| **Admin** | Full access: manage buildings, events, salones, users, and view analytics |
+
+## Tech stack
+
+AirGuide is a TypeScript monorepo with a Vite + React frontend and a separate Node.js backend server.
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, TypeScript, Vite 6, Tailwind CSS v4 |
+| Mapping | Leaflet, react-leaflet, leaflet-routing-machine |
+| UI components | Radix UI, shadcn/ui-style components, MUI |
+| Backend | Node.js, Express (separate `server/` directory) |
+| Database | PostgreSQL via Prisma ORM |
+| Auth | JWT tokens stored in `localStorage` |
+| Routing | React Router v7 |

@@ -1,0 +1,165 @@
+---
+title: "Route calculation"
+description: "AirGuide can calculate and display a walking route between any two campus buildings using leaflet-routing-machine. The route appears as a red line on the interactive map."
+---
+
+The route calculator lets you select an origin and destination building and renders the path directly on the map. Route calculation is powered by [leaflet-routing-machine](https://www.liedman.net/leaflet-routing-machine/), which queries the OSRM routing service to find the best path between two coordinate pairs.
+
+## Opening the route panel
+
+The route calculator is accessed from the floating blue button in the bottom-right corner of the map. The button shows a route icon; clicking it toggles the route panel open or closed.
+
+```tsx Map.tsx
+<button
+    onClick={() => setShowRoutePanel(!showRoutePanel)}
+    className="absolute bottom-4 right-4 bg-[var(--app-blue)] text-white p-3
+               rounded-full shadow-xl hover:opacity-90 transition-opacity z-[1000]
+               flex items-center gap-2"
+    title="Calcular ruta"
+>
+    <RouteIcon className="w-5 h-5" />
+    {showRoutePanel && <span className="text-sm font-medium pr-1">Rutas</span>}
+</button>
+```
+
+## Calculating a route
+
+<Steps>
+  <Step title="Open the route panel">
+    Click the blue route button in the bottom-right corner of the map. The **Calcular Ruta** panel slides up above the button.
+  </Step>
+  <Step title="Select an origin">
+    Use the **Origen** dropdown to choose a starting building. The list includes all active campus buildings by name.
+  </Step>
+  <Step title="Select a destination">
+    Use the **Destino** dropdown to choose an ending building.
+  </Step>
+  <Step title="Calculate">
+    Click **Calcular**. The route appears on the map as a red line and the map automatically fits its bounds to show both waypoints with 50 px of padding.
+  </Step>
+  <Step title="Clear the route">
+    Click **Limpiar** to remove the route from the map and reset both dropdowns.
+  </Step>
+</Steps>
+
+<Tip>
+  After calculating a route, a summary box in the panel shows the selected origin and destination building names so you can confirm the selection before navigating.
+</Tip>
+
+## Route appearance
+
+The routing control applies distinct colors for the primary route and alternative routes.
+
+| Route type | Color | Opacity | Weight |
+|---|---|---|---|
+| Primary route | `#EF4444` (red) | 0.8 | 6 px |
+| Alternative routes | `#F87171` (light red) | 0.5 | 4 px |
+
+## Waypoint markers
+
+Custom SVG markers replace the default leaflet-routing-machine pins at the origin and destination.
+
+- **Origin marker** — green pin (`#22C55E` fill, `#16A34A` stroke)
+- **Destination marker** — red pin (`#EF4444` fill, `#DC2626` stroke)
+
+Both markers show a popup when clicked: `"Origen: <building name>"` or `"Destino: <building name>"`.
+
+```tsx Map.tsx
+createMarker: function (i: number, waypoint: any, n: number) {
+    const markerIcon = new L.Icon({
+        iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
+              <path fill="${i === 0 ? '#22C55E' : '#EF4444'}"
+                    stroke="${i === 0 ? '#16A34A' : '#DC2626'}"
+                    stroke-width="2"
+                    d="M16 0C7.163 0 0 7.163 0 16c0 8.837 16 26 16 26s16-17.163 16-26
+                       C32 7.163 24.837 0 16 0z"/>
+              <circle cx="16" cy="16" r="6" fill="white"/>
+            </svg>
+        `),
+        iconSize: [32, 42],
+        iconAnchor: [16, 42],
+        popupAnchor: [0, -42],
+    });
+
+    return L.marker(waypoint.latLng, {
+        icon: markerIcon,
+        draggable: false
+    }).bindPopup(i === 0
+        ? `Origen: ${origin.nombre}`
+        : `Destino: ${destination.nombre}`);
+}
+```
+
+## Routing control setup
+
+The full routing control configuration used in `Map.tsx`:
+
+```tsx Map.tsx
+const routingControl = (L as any).Routing.control({
+    waypoints: [
+        L.latLng(Number(origin.latitud), Number(origin.longitud)),
+        L.latLng(Number(destination.latitud), Number(destination.longitud))
+    ],
+    routeWhileDragging: true,
+    showAlternatives: true,
+    addWaypoints: false,
+    lineOptions: {
+        styles: [
+            { color: '#EF4444', opacity: 0.8, weight: 6 }
+        ],
+        extendToWaypoints: true,
+        missingRouteTolerance: 0
+    },
+    altLineOptions: {
+        styles: [
+            { color: '#F87171', opacity: 0.5, weight: 4 }
+        ],
+        extendToWaypoints: true,
+        missingRouteTolerance: 0
+    },
+    // createMarker: see above
+}).addTo(mapRef.current);
+```
+
+## Fitting map bounds
+
+After calculating a route, the map automatically zooms and pans to show both waypoints:
+
+```tsx Map.tsx
+const bounds = L.latLngBounds([
+    [Number(origin.latitud), Number(origin.longitud)],
+    [Number(destination.latitud), Number(destination.longitud)]
+]);
+mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+```
+
+## Clearing a route
+
+The **Limpiar** button removes the routing control from the map and resets both origin and destination state to `null`:
+
+```tsx Map.tsx
+const clearRoute = () => {
+    if (routingControlRef.current && mapRef.current) {
+        mapRef.current.removeControl(routingControlRef.current);
+        routingControlRef.current = null;
+    }
+    setRouteOrigin(null);
+    setRouteDestination(null);
+};
+```
+
+<Note>
+  The **Limpiar** button is disabled when no route is currently displayed.
+</Note>
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Interactive map" icon="map" href="/features/map">
+    Overview of the full map interface including markers, search, and the legend.
+  </Card>
+  <Card title="Buildings" icon="building" href="/features/buildings">
+    Building data model — the source of origin and destination coordinates.
+  </Card>
+</CardGroup>

@@ -1,0 +1,121 @@
+---
+title: Buildings management
+description: Create, edit, search, and delete campus buildings from the AirGuide admin panel.
+---
+
+The buildings management page at `/admin/edificios` lets admins manage every campus building that appears on the AirGuide map. All data is stored with lat/lng coordinates so buildings can be pinned accurately in Leaflet.
+
+## Buildings table
+
+The table lists all buildings returned by `GET /api/edificios`. Columns:
+
+| Column | Description |
+|---|---|
+| Edificio | Building name and optional description |
+| Tipo | Badge showing `academico`, `administrativo`, or `recreativo` |
+| Ubicación | Lat/lng coordinates with a map-pin icon |
+| Estado | Green `Activo` or red `Inactivo` badge |
+| Acciones | Edit (pencil) and Delete (trash) icon buttons |
+
+### Searching buildings
+
+A search bar above the table filters `edificiosFiltrados` in real time. The filter matches against both `nombre` and `descripcion` (case-insensitive).
+
+```ts
+const edificiosFiltrados = edificios.filter(e =>
+  e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  e.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
+);
+```
+
+## Creating and editing a building
+
+Click **Nuevo Edificio** to open the create modal. Click the pencil icon on any row to open the edit modal pre-filled with that building's data.
+
+### Form fields
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `nombre` | text | Yes | E.g. `Edificio Central` |
+| `descripcion` | textarea | No | Free-form description |
+| `latitud` | number (`step="any"`) | Yes | E.g. `25.6866` |
+| `longitud` | number (`step="any"`) | Yes | E.g. `-100.3161` |
+| `tipo` | select | Yes | `academico` \| `administrativo` \| `recreativo` |
+| `activo` | checkbox | — | Checked by default on new buildings |
+
+<Note>
+  `latitud` and `longitud` are stored as floats. The form submits them as strings and parses them with `parseFloat()` before sending to the API.
+</Note>
+
+### API calls
+
+<CodeGroup>
+
+```http Create building
+POST /api/edificios
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre": "Edificio Central",
+  "descripcion": "Edificio principal de rectoría",
+  "latitud": 25.6866,
+  "longitud": -100.3161,
+  "tipo": "administrativo",
+  "activo": true
+}
+```
+
+```http Update building
+PUT /api/edificios/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre": "Edificio Central",
+  "latitud": 25.6866,
+  "longitud": -100.3161,
+  "tipo": "administrativo",
+  "activo": true
+}
+```
+
+</CodeGroup>
+
+On success, the modal closes and `fetchEdificios()` refreshes the table. Errors surface as a toast notification via `sonner`.
+
+## Deleting a building
+
+Click the trash icon on any row. A browser `confirm()` dialog prompts:
+
+> ¿Estás seguro de eliminar el edificio "\{nombre}"?
+
+<Warning>
+  This action cannot be undone. Deleting a building removes it from the map and may affect associated salones, cubículos, and events.
+</Warning>
+
+```http
+DELETE /api/edificios/:id
+Authorization: Bearer <token>
+```
+
+On success, the building is removed from the local state immediately via `setEdificios(prev => prev.filter(e => e.id_edificio !== id))`.
+
+## `Edificio` data model
+
+```ts
+interface Edificio {
+  id_edificio: number;
+  nombre: string;
+  descripcion?: string | null;
+  latitud: number;
+  longitud: number;
+  tipo: 'academico' | 'administrativo' | 'recreativo';
+  activo: boolean;
+  _count?: {
+    salones: number;
+    cubiculos: number;
+    eventos: number;
+  };
+}
+```

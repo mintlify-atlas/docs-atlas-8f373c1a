@@ -1,0 +1,159 @@
+---
+title: "Events"
+description: "Campus events (eventos) appear as green markers on the interactive map. Each event is tied to a building and can be public or private, active or inactive."
+---
+
+Events represent campus activities — lectures, workshops, fairs, ceremonies, and other scheduled occurrences. Because events do not have their own geographic coordinates, they inherit the latitude and longitude of the building where they take place.
+
+## Data model
+
+The `Evento` interface is defined in `useEventos.ts`:
+
+```typescript useEventos.ts
+export interface Evento {
+  id_evento: number;
+  nombre: string;
+  descripcion?: string | null;
+  fecha_inicio: string;  // ISO 8601 date string
+  fecha_fin: string;     // ISO 8601 date string
+  id_edificio: number;
+  publico: boolean;
+  activo: boolean;
+  edificio?: {
+    id_edificio: number;
+    nombre: string;
+    tipo: string;
+    latitud: number;
+    longitud: number;
+  };
+}
+```
+
+### Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id_evento` | `number` | Primary key |
+| `nombre` | `string` | Display name shown on the marker and in the info panel |
+| `descripcion` | `string \| null` | Optional description shown in the info panel |
+| `fecha_inicio` | `string` | ISO 8601 start date/time |
+| `fecha_fin` | `string` | ISO 8601 end date/time |
+| `id_edificio` | `number` | Foreign key — the building where the event is held |
+| `publico` | `boolean` | Whether the event is publicly visible |
+| `activo` | `boolean` | Whether the event is currently active |
+| `edificio` | `object` | Joined building data including coordinates |
+
+## Map position
+
+Events do not have their own coordinates. The map marker is placed at the latitude and longitude of the associated building.
+
+```tsx Map.tsx
+eventosFiltrados.forEach((evento) => {
+    if (!evento.edificio) return;
+
+    const marker = L.marker(
+        [Number(evento.edificio.latitud), Number(evento.edificio.longitud)],
+        { icon: eventoIcon }
+    );
+    // ...
+});
+```
+
+<Note>
+  Events without a joined `edificio` object are silently skipped and will not appear on the map.
+</Note>
+
+## Fetching events
+
+Events are fetched by the `useEventos` hook on mount. The endpoint is public — no authentication is required.
+
+```typescript useEventos.ts
+const fetchEventos = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await fetch(`${API_URL}/eventos`);
+    if (!response.ok) throw new Error('Error al cargar eventos');
+    const data = await response.json();
+    setEventos(data);
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+## Event status
+
+Status is derived at render time from the event's dates and `activo` flag — it is not stored as a field in the database.
+
+| Status | Condition |
+|---|---|
+| **En curso** | `activo` is `true` and the current time is between `fecha_inicio` and `fecha_fin` |
+| **Próximo** | `fecha_inicio` is in the future |
+| **Finalizado** | `fecha_fin` is in the past, or `activo` is `false` |
+
+## Public vs private events
+
+The `publico` field controls event visibility.
+
+<Columns cols={2}>
+  <Card title="Public events" icon="globe" color="#10B981">
+    Visible to all visitors including guests. Shown as green markers on the public map.
+  </Card>
+  <Card title="Private events" icon="lock" color="#8B5CF6">
+    Managed by administrators. Private events may be restricted to specific roles depending on your backend configuration.
+  </Card>
+</Columns>
+
+## Marker info panel
+
+Clicking a green event marker opens the info panel in the top-right corner of the map. The panel shows:
+
+<Steps>
+  <Step title="Event name">
+    Displayed as a large heading at the top of the panel.
+  </Step>
+  <Step title="Calendar badge">
+    A green pill badge with a calendar icon and the label "Evento".
+  </Step>
+  <Step title="Description">
+    The optional `descripcion` field rendered as body text. Hidden if empty.
+  </Step>
+  <Step title="Start and end dates">
+    Both `fecha_inicio` and `fecha_fin` formatted with `toLocaleDateString()` and shown in a key/value layout.
+  </Step>
+  <Step title="Location">
+    The `edificio.nombre` of the associated building, shown as the event's physical location.
+  </Step>
+</Steps>
+
+```tsx Map.tsx
+<div className="space-y-2 mb-3">
+  <div className="flex justify-between text-sm">
+    <span>Inicio:</span>
+    <span>{new Date(selectedMarker.fecha_inicio).toLocaleDateString()}</span>
+  </div>
+  <div className="flex justify-between text-sm">
+    <span>Fin:</span>
+    <span>{new Date(selectedMarker.fecha_fin).toLocaleDateString()}</span>
+  </div>
+  {selectedMarker.edificio && (
+    <div className="flex justify-between text-sm">
+      <span>Ubicación:</span>
+      <span>{selectedMarker.edificio.nombre}</span>
+    </div>
+  )}
+</div>
+```
+
+## Admin management
+
+Administrators can create, edit, and delete events through the admin dashboard. All write operations require a valid JWT token with the `admin` role.
+
+<Warning>
+  Deleting a building that has events associated with it will affect those events' map positions. Always reassign or delete associated events before removing a building.
+</Warning>
+
+See the [admin events guide](/admin/events) for full instructions on managing campus events.

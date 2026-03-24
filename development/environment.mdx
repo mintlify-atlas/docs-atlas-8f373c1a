@@ -1,0 +1,92 @@
+---
+title: 'Environment variables'
+description: 'Reference for all environment variables used by the AirGuide backend server and frontend client.'
+---
+
+AirGuide uses two sets of environment variables: server-side variables in `server/.env`, and an optional client-side variable read by Vite at build time.
+
+<Note>
+  All server variables must be defined in `server/.env` before starting the backend. The frontend variable `VITE_API_URL` is optional and falls back to `http://localhost:3001/api` when not set.
+</Note>
+
+## Server variables (`server/.env`)
+
+Create this file in the `server/` directory. See the [setup guide](/development/setup) for the full `.env` template.
+
+<ParamField path="DATABASE_URL" type="string" required>
+  PostgreSQL connection string used by Prisma to connect to the database hosted on Prisma Cloud. Must include `sslmode=require` and `pool=true` for the managed Prisma Cloud instance.
+
+  ```
+  postgres://<user>:<password>@db.prisma.io:5432/postgres?sslmode=require&pool=true
+  ```
+</ParamField>
+
+<ParamField path="PORT" type="number" default="3001">
+  The port the Express server listens on. The frontend is configured to call `http://localhost:3001` by default, so changing this also requires updating `CORS_ORIGIN` and `VITE_API_URL`.
+</ParamField>
+
+<ParamField path="NODE_ENV" type="string" default="development">
+  Runtime environment. Accepted values: `development` or `production`. Affects error verbosity and security behaviour in the Express server.
+</ParamField>
+
+<ParamField path="JWT_SECRET" type="string" required>
+  Secret key used to sign and verify JWT tokens. Use a long, random string in production. The development default is `airguide-secret-key-app-in-development-2026`.
+
+  <Warning>
+    Never use the development `JWT_SECRET` value in production. Rotate it with a cryptographically random string of at least 64 characters.
+  </Warning>
+</ParamField>
+
+<ParamField path="JWT_EXPIRES_IN" type="string" default="1d">
+  Token expiry duration passed to `jsonwebtoken`. Accepts the [ms](https://github.com/vercel/ms) format — for example `1d`, `7d`, `2h`, or `30m`.
+</ParamField>
+
+<ParamField path="CORS_ORIGIN" type="string" required>
+  The frontend origin that the backend allows in CORS headers. Must match the exact URL the browser uses to access the frontend, including protocol and port.
+
+  ```
+  # Local development
+  CORS_ORIGIN=http://localhost:5173
+
+  # Production example
+  CORS_ORIGIN=https://airguide.example.com
+  ```
+</ParamField>
+
+## Client variable (optional)
+
+This variable is read by Vite at build time and inlined into the frontend bundle. Set it in a `.env` file at the project root if you need to override the API URL.
+
+<ParamField path="VITE_API_URL" type="string" default="http://localhost:3001/api">
+  Base URL for all API requests made by the frontend hooks. When this variable is not set, every hook falls back to `http://localhost:3001/api`.
+
+  This default is defined directly in the hook source:
+
+  ```typescript
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  ```
+
+  Set this variable when deploying the frontend to a different origin than the default backend URL:
+
+  ```bash .env (project root)
+  VITE_API_URL=https://api.airguide.example.com/api
+  ```
+</ParamField>
+
+## Example `server/.env`
+
+```bash server/.env
+# Database - PostgreSQL on Prisma Cloud
+DATABASE_URL="postgres://f7a35276552eb6c4aa3bd70770cb509caeb73a885b11fcbbc269562a4a873e46:sk_isnKgYV7R84c6doSZiLKK@db.prisma.io:5432/postgres?sslmode=require&pool=true"
+
+# Server
+PORT=3001
+NODE_ENV=development
+
+# JWT
+JWT_SECRET=airguide-secret-key-app-in-development-2026
+JWT_EXPIRES_IN=1d
+
+# CORS
+CORS_ORIGIN=http://localhost:5173
+```

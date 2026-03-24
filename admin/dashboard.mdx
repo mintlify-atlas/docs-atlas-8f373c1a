@@ -1,0 +1,95 @@
+---
+title: Admin dashboard
+description: Overview of the AirGuide admin dashboard — quick actions, pending user validation, and navigation controls.
+---
+
+The admin dashboard at `/admin` is the central hub for managing AirGuide. It displays live counts for buildings, events, salones, and accesses, surfaces users pending validation, and links to every management section.
+
+<Warning>
+  The dashboard checks `user.rol === 'admin'` on load. Any non-admin session is immediately redirected to `/`.
+</Warning>
+
+## Header
+
+The dashboard header renders three controls on the right side:
+
+- **User chip** — displays the logged-in admin's `nombre` alongside an `Admin` badge.
+- **Ver Mapa** button — navigates to `/mapa` to return to the campus map.
+- **Theme toggle** — switches between light and dark mode using the `ThemeContext`. Shows a sun icon in dark mode and a moon icon in light mode.
+
+## Quick action cards
+
+Four cards appear under "Acciones Rápidas". Each card shows a live count sourced from `useAnalytics(true)` → `dashboardStats`.
+
+<CardGroup cols={2}>
+  <Card title="Edificios" icon="building-2" href="/admin/buildings">
+    Links to `/admin/edificios`. Count comes from `dashboardStats.edificios.total`.
+  </Card>
+  <Card title="Eventos" icon="calendar" href="/admin/events">
+    Links to `/admin/events`. Count comes from `dashboardStats.eventos.total`.
+  </Card>
+  <Card title="Analytics" icon="bar-chart-3" href="/admin/analytics">
+    Links to `/admin/analytics`. Count comes from `dashboardStats.totalAccesos`.
+  </Card>
+  <Card title="Salones" icon="settings" href="/admin/salones">
+    Links to `/admin/salones`. Count comes from `dashboardStats.salones`.
+  </Card>
+</CardGroup>
+
+While `dashboardStats` is loading, each card slot renders a pulse skeleton.
+
+## Usuarios pendientes de validación
+
+Directly below the header, the dashboard shows the "Usuarios Pendientes de Validación" section. The `useUsuarios` hook calls `GET /api/auth/pending` on mount and populates `usuariosPendientes`.
+
+An orange badge next to the section heading shows the pending count:
+
+```tsx
+<span className="px-3 py-1 bg-orange-100 text-orange-700 text-sm rounded-full">
+  {usuariosPendientes.length} pendientes
+</span>
+```
+
+When there are no pending users, an empty state with a `UserCheck` icon is shown instead of the table.
+
+### Pending users table
+
+| Column | Source field |
+|---|---|
+| Nombre | `usuario.nombre` (with avatar initial) |
+| Correo | `usuario.correo` |
+| Matrícula | `usuario.matricula` (falls back to `N/A`) |
+| Fecha Registro | `usuario.fecha_registro` formatted with `toLocaleDateString()` |
+| Acciones | Aprobar / Rechazar buttons |
+
+### Approving and rejecting users
+
+Each row has two action buttons that call `validarUsuario` from `useUsuarios`:
+
+<Steps>
+  <Step title="Click Aprobar or Rechazar">
+    The `handleValidarUsuario` function fires a browser `confirm()` dialog asking the admin to confirm the action before proceeding.
+  </Step>
+  <Step title="Confirmation sent to the API">
+    On confirmation, `validarUsuario(id, estado)` is called where `estado` is either `'activo'` or `'rechazado'`.
+
+    ```ts
+    // useUsuarios.ts
+    const response = await fetch(`${API_URL}/auth/validate/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ estado }),
+    });
+    ```
+  </Step>
+  <Step title="UI updated">
+    On success, the user is removed from `usuariosPendientes` immediately. An `alert()` confirms the result. If the request fails, the error message is shown via `alert()`.
+  </Step>
+</Steps>
+
+<Note>
+  Approving a user sets their `estado` to `'activo'`, which allows them to log in. Rejecting sets `estado` to `'rechazado'`, which blocks login. See [User validation](/admin/user-validation) for the full workflow.
+</Note>

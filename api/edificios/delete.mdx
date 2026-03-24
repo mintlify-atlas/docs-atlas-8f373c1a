@@ -1,0 +1,59 @@
+---
+title: 'Delete building'
+description: 'Permanently delete a campus building from AirGuide. Requires admin authentication.'
+---
+
+## `DELETE /api/edificios/:id`
+
+Permanently removes a building from the system. This action cannot be undone.
+
+<Info>Requires a valid Bearer token with the `admin` role.</Info>
+
+<Warning>
+  Deleting a building removes it from the campus map immediately. All associated classrooms (`salones`), study rooms (`cubiculos`), and events (`eventos`) may also be affected. Consider setting `activo: false` via [PUT /api/edificios/:id](/api/edificios/update) to hide a building without deleting it.
+</Warning>
+
+---
+
+## Request
+
+### Path parameters
+
+<ParamField path="id" type="number" required>
+  The `id_edificio` of the building to delete.
+</ParamField>
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token obtained from [POST /api/auth/login](/api/auth/login). Format: `Bearer <token>`.
+</ParamField>
+
+---
+
+## Response
+
+### 200 / 204 — Success
+
+Returns no body, or a confirmation object depending on the server version.
+
+---
+
+## Examples
+
+```bash cURL
+curl --request DELETE \
+  --url http://localhost:3001/api/edificios/12 \
+  --header 'Authorization: Bearer <token>'
+```
+
+---
+
+## Error codes
+
+| Status | Description |
+| --- | --- |
+| `401` | No token provided or token is invalid. |
+| `403` | Authenticated user does not have the `admin` role. |
+| `404` | No building found with the given `id`. |
+| `500` | Server error while deleting the building. |

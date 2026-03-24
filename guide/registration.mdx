@@ -1,0 +1,71 @@
+---
+title: Registration and login
+description: How to create a student account, understand approval states, and log in to AirGuide.
+keywords: ['registration', 'login', 'account', 'alumno', 'pendiente', 'approval']
+---
+
+AirGuide uses an admin-approved registration flow. You submit your details, wait for an administrator to review your account, and then log in once approved.
+
+## Creating an account
+
+<Steps>
+  <Step title="Go to the registration page">
+    From the map at `/`, click **Iniciar Sesión** in the top-right corner, then click **Regístrate aquí** at the bottom of the login form. You can also navigate directly to `/register`.
+  </Step>
+
+  <Step title="Fill in your details">
+    Complete all four fields:
+
+    | Field | Description |
+    |---|---|
+    | **Nombre Completo** | Your full name |
+    | **Correo Electrónico** | Your institutional email address |
+    | **Matrícula** | Your student ID number |
+    | **Contraseña** | A password of at least 8 characters |
+
+    Confirm your password in the **Confirmar Contraseña** field. The form validates that both passwords match before submitting.
+  </Step>
+
+  <Step title="Submit the form">
+    Click **Crear Cuenta**. If the email or student ID is already registered, you will see an error. On success, a confirmation message appears on the page.
+  </Step>
+
+  <Step title="Wait for admin approval">
+    Your account is created with a `pendiente` (pending) status. You cannot log in until an administrator reviews and approves your account.
+
+    <Note>
+      There is no automated notification when your account is approved. Contact your campus administrator if you need to follow up on your approval.
+    </Note>
+  </Step>
+</Steps>
+
+## Account states
+
+Every student account has one of three states:
+
+| State | Meaning |
+|---|---|
+| `pendiente` | Newly registered — awaiting admin review |
+| `activo` | Approved — you can log in and use all features |
+| `rechazado` | Rejected — login is not permitted |
+
+<Warning>
+  If your account is in `rechazado` state, the login form will show "Credenciales incorrectas o usuario no activo". Contact your campus administrator to understand why your account was rejected.
+</Warning>
+
+## Logging in
+
+Once your account is `activo`, go to `/login` and enter your institutional email and password.
+
+- **Admins** are redirected to `/admin/dashboard` after login.
+- **Students** (`alumno` role) are redirected to the map at `/`.
+
+Your session is stored in `localStorage` under the keys `token` (JWT) and `usuario` (your profile object). The session persists across browser refreshes until you log out.
+
+<Info>
+  Attempting to log in with a `pendiente` or `rechazado` account will fail with "Credenciales incorrectas o usuario no activo", even if you entered the correct password.
+</Info>
+
+## Logging out
+
+Click **Cerrar Sesión** in the top-right header bar of the map. This clears your session from `localStorage` and redirects you to `/login`.

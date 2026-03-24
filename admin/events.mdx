@@ -1,0 +1,156 @@
+---
+title: Events management
+description: Create, edit, and delete campus events linked to buildings in the AirGuide admin panel.
+---
+
+The events management page at `/admin/events` lets admins schedule campus events and associate them with specific buildings. Events appear on the map and are visible to students based on their `publico` flag.
+
+## Events table
+
+The table lists all events returned by `GET /api/eventos`. Columns:
+
+| Column | Description |
+|---|---|
+| Evento | Event name and truncated description |
+| Ubicación | Associated building name with a building icon |
+| Fechas | Start date and end date (formatted `es-MX` locale) |
+| Estado | Status badge(s) — see [Status logic](#status-logic) below |
+| Acciones | Edit (pencil) and Delete (trash) icon buttons |
+
+### Searching events
+
+A search bar filters `eventosFiltrados` in real time against `nombre` and `descripcion`:
+
+```ts
+const eventosFiltrados = eventos.filter(e =>
+  e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  e.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
+);
+```
+
+## Status logic
+
+Each event row displays one of three mutually exclusive status badges, plus an optional **Público** badge:
+
+| Badge | Color | Condition |
+|---|---|---|
+| En curso | Green | `now >= fecha_inicio && now <= fecha_fin && activo === true` |
+| Próximo | Blue | `fecha_inicio > now && activo === true` |
+| Finalizado | Gray | All other cases (past end date, or `activo === false`) |
+| Público | Purple | `evento.publico === true` (shown alongside the status badge) |
+
+```ts
+const isEventoActivo = (evento: Evento) => {
+  const now = new Date();
+  const inicio = new Date(evento.fecha_inicio);
+  const fin = new Date(evento.fecha_fin);
+  return now >= inicio && now <= fin && evento.activo;
+};
+
+const isEventoProximo = (evento: Evento) => {
+  const now = new Date();
+  const inicio = new Date(evento.fecha_inicio);
+  return inicio > now && evento.activo;
+};
+```
+
+## Creating and editing an event
+
+Click **Nuevo Evento** to open the create modal. Click the pencil icon on any row to open the edit modal pre-filled with that event's data.
+
+### Form fields
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `nombre` | text | Yes | E.g. `Conferencia de Tecnología` |
+| `descripcion` | textarea | No | Free-form description |
+| `id_edificio` | select | Yes | Dropdown populated from all buildings |
+| `fecha_inicio` | date | Yes | Stored as ISO date string; displayed in `es-MX` locale |
+| `fecha_fin` | date | Yes | Must be on or after `fecha_inicio` |
+| `publico` | checkbox | — | Checked by default; controls student visibility |
+| `activo` | checkbox | — | Checked by default; drives status badge logic |
+
+<Note>
+  When editing, `fecha_inicio` and `fecha_fin` are split on `'T'` before populating the date inputs:
+  `evento.fecha_inicio.split('T')[0]`
+</Note>
+
+### API calls
+
+<CodeGroup>
+
+```http Create event
+POST /api/eventos
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre": "Conferencia de Tecnología",
+  "descripcion": "Ponencias sobre IA y robótica",
+  "id_edificio": 3,
+  "fecha_inicio": "2026-04-01",
+  "fecha_fin": "2026-04-03",
+  "publico": true,
+  "activo": true
+}
+```
+
+```http Update event
+PUT /api/eventos/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre": "Conferencia de Tecnología",
+  "id_edificio": 3,
+  "fecha_inicio": "2026-04-01",
+  "fecha_fin": "2026-04-03",
+  "publico": true,
+  "activo": true
+}
+```
+
+</CodeGroup>
+
+On success, the modal closes and `fetchEventos()` refreshes the table. Errors surface as a `sonner` toast.
+
+## Deleting an event
+
+Clicking the trash icon opens a dedicated **delete confirmation modal** (not a browser dialog). The modal shows:
+
+- A red trash icon inside a circular badge
+- The heading "Eliminar Evento"
+- The subheading "Esta acción no se puede deshacer"
+- The event name in bold: *¿Estás seguro de que deseas eliminar el evento **"\{nombre}"**?*
+- **Cancelar** and **Eliminar** buttons
+
+<Warning>
+  Deletion is permanent. There is no soft-delete or recycle bin.
+</Warning>
+
+```http
+DELETE /api/eventos/:id
+Authorization: Bearer <token>
+```
+
+## `Evento` data model
+
+```ts
+interface Evento {
+  id_evento: number;
+  nombre: string;
+  descripcion?: string | null;
+  fecha_inicio: string;
+  fecha_fin: string;
+  id_edificio: number;
+  publico: boolean;
+  activo: boolean;
+  edificio?: {
+    id_edificio: number;
+    nombre: string;
+    tipo: string;
+    latitud: number;
+    longitud: number;
+  };
+}
+```

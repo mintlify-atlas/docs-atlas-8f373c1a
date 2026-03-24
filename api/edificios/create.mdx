@@ -1,0 +1,130 @@
+---
+title: 'Create building'
+description: 'Add a new campus building to AirGuide. Requires admin authentication.'
+---
+
+## `POST /api/edificios`
+
+Creates a new building and adds it to the campus map. Only administrators can perform this action.
+
+<Info>Requires a valid Bearer token with the `admin` role.</Info>
+
+---
+
+## Request
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token obtained from [POST /api/auth/login](/api/auth/login). Format: `Bearer <token>`.
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+### Body
+
+<ParamField body="nombre" type="string" required>
+  Building name.
+</ParamField>
+
+<ParamField body="latitud" type="number" required>
+  GPS latitude coordinate of the building.
+</ParamField>
+
+<ParamField body="longitud" type="number" required>
+  GPS longitude coordinate of the building.
+</ParamField>
+
+<ParamField body="tipo" type="string" required>
+  Building category. One of `academico`, `administrativo`, or `recreativo`.
+</ParamField>
+
+<ParamField body="descripcion" type="string">
+  Optional description of the building.
+</ParamField>
+
+<ParamField body="activo" type="boolean" default="true">
+  Whether the building should be immediately visible on the map. Defaults to `true`.
+</ParamField>
+
+---
+
+## Response
+
+### 201 — Created
+
+Returns the newly created `Edificio` object.
+
+<ResponseField name="id_edificio" type="number" required>
+  Unique identifier assigned to the new building.
+</ResponseField>
+
+<ResponseField name="nombre" type="string" required>
+  Building name.
+</ResponseField>
+
+<ResponseField name="descripcion" type="string">
+  Building description. May be `null` if not provided.
+</ResponseField>
+
+<ResponseField name="latitud" type="number" required>
+  GPS latitude coordinate.
+</ResponseField>
+
+<ResponseField name="longitud" type="number" required>
+  GPS longitude coordinate.
+</ResponseField>
+
+<ResponseField name="tipo" type="string" required>
+  Building category: `academico`, `administrativo`, or `recreativo`.
+</ResponseField>
+
+<ResponseField name="activo" type="boolean" required>
+  Whether the building is active and visible on the map.
+</ResponseField>
+
+---
+
+## Examples
+
+```bash cURL
+curl --request POST \
+  --url http://localhost:3001/api/edificios \
+  --header 'Authorization: Bearer <token>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "nombre": "Centro de Innovación",
+    "descripcion": "Hub de startups y laboratorios de investigación",
+    "latitud": 25.6521,
+    "longitud": -100.2901,
+    "tipo": "academico",
+    "activo": true
+  }'
+```
+
+### Example response
+
+```json
+{
+  "id_edificio": 12,
+  "nombre": "Centro de Innovación",
+  "descripcion": "Hub de startups y laboratorios de investigación",
+  "latitud": 25.6521,
+  "longitud": -100.2901,
+  "tipo": "academico",
+  "activo": true
+}
+```
+
+---
+
+## Error codes
+
+| Status | Description |
+| --- | --- |
+| `400` | Missing or invalid required fields. |
+| `401` | No token provided or token is invalid. |
+| `403` | Authenticated user does not have the `admin` role. |
+| `500` | Server error while creating the building. |

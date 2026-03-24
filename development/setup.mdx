@@ -1,0 +1,130 @@
+---
+title: 'Local development setup'
+description: 'Get AirGuide running on your machine. The project uses three terminals simultaneously: one for the frontend, one for the backend server, and one for Prisma Studio.'
+---
+
+<Info>
+  AirGuide requires **three terminals open at the same time**: one for the frontend (port 5173), one for the backend (port 3001), and one for Prisma Studio.
+</Info>
+
+## Prerequisites
+
+<Columns cols={2}>
+  <Card title="Node.js 22" icon="node-js">
+    The project pins Node.js to version 22 via `.nvmrc`. Install it with [nvm](https://github.com/nvm-sh/nvm) or directly from [nodejs.org](https://nodejs.org).
+  </Card>
+  <Card title="npm" icon="npm">
+    Comes bundled with Node.js. Dependencies are installed with the `--legacy-peer-deps` flag due to version constraints between packages.
+  </Card>
+</Columns>
+
+If you use nvm, switch to the correct version before continuing:
+
+```bash
+nvm use
+```
+
+## Setup
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the AirGuide repository and navigate into the project root.
+
+    ```bash
+    git clone <repository-url>
+    cd Airguidev1-main
+    ```
+  </Step>
+
+  <Step title="Install frontend dependencies">
+    From the project root, install the frontend dependencies. The `--legacy-peer-deps` flag is required to resolve peer dependency conflicts.
+
+    ```bash
+    npm install --legacy-peer-deps
+    ```
+
+    This may take a few minutes.
+  </Step>
+
+  <Step title="Install backend dependencies">
+    Open a second terminal, navigate to the `server` directory, and install the backend dependencies.
+
+    ```bash
+    cd server
+    npm install --legacy-peer-deps
+    ```
+  </Step>
+
+  <Step title="Create the server .env file">
+    Inside the `server` directory, create a file named `.env` and paste the following content:
+
+    ```bash server/.env
+    # Database - PostgreSQL on Prisma Cloud
+    DATABASE_URL="postgres://f7a35276552eb6c4aa3bd70770cb509caeb73a885b11fcbbc269562a4a873e46:sk_isnKgYV7R84c6doSZiLKK@db.prisma.io:5432/postgres?sslmode=require&pool=true"
+
+    # Server
+    PORT=3001
+    NODE_ENV=development
+
+    # JWT
+    JWT_SECRET=airguide-secret-key-app-in-development-2026
+    JWT_EXPIRES_IN=1d
+
+    # CORS
+    CORS_ORIGIN=http://localhost:5173
+    ```
+
+    <Warning>
+      Never commit `.env` to version control. The `server/.env` file is already included in `.gitignore`.
+    </Warning>
+
+    See the [environment variables reference](/development/environment) for a full description of each variable.
+  </Step>
+
+  <Step title="Start Prisma Studio (Terminal 3)">
+    Open a third terminal, navigate to the `server` directory, and start Prisma Studio. This gives you a visual browser interface to inspect and edit the database.
+
+    ```bash
+    cd server
+    npm run prisma:studio
+    ```
+
+    Prisma Studio opens in your browser automatically.
+  </Step>
+
+  <Step title="Start the backend server (Terminal 2)">
+    In your second terminal (the one in the `server` directory), start the backend server:
+
+    ```bash
+    npm run dev
+    ```
+
+    The API server starts on **http://localhost:3001**.
+  </Step>
+
+  <Step title="Start the frontend (Terminal 1)">
+    In your first terminal (the project root), start the Vite development server:
+
+    ```bash
+    npm run dev
+    ```
+
+    The frontend starts on **http://localhost:5173**.
+  </Step>
+</Steps>
+
+## Verify the setup
+
+Open [http://localhost:5173](http://localhost:5173) in your browser. You should see the AirGuide login screen.
+
+<Tip>
+  If the frontend loads but API requests fail, verify the backend is running on port 3001 and that `CORS_ORIGIN` in your `.env` matches the frontend URL exactly.
+</Tip>
+
+## Terminal layout summary
+
+| Terminal | Directory | Command | URL |
+|---|---|---|---|
+| Terminal 1 — Frontend | `Airguidev1-main/` | `npm run dev` | http://localhost:5173 |
+| Terminal 2 — Backend | `Airguidev1-main/server/` | `npm run dev` | http://localhost:3001 |
+| Terminal 3 — Prisma Studio | `Airguidev1-main/server/` | `npm run prisma:studio` | http://localhost:5555 |

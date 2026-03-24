@@ -1,0 +1,129 @@
+---
+title: 'Dashboard stats'
+description: 'Retrieve aggregate campus statistics for the admin dashboard.'
+---
+
+## GET /api/analytics/dashboard
+
+Returns a `DashboardStats` object with counts for all major entities in the system: users, buildings, classrooms, events, routes, and access logs.
+
+<Warning>
+  This endpoint requires a valid admin Bearer token in the `Authorization` header.
+</Warning>
+
+## Request
+
+**Headers**
+
+<ParamField path="header.Authorization" type="string" required>
+  Bearer token for admin authentication. Format: `Bearer <token>`.
+</ParamField>
+
+## Response
+
+<ResponseField name="usuarios" type="object" required>
+  Aggregated user counts.
+  <Expandable title="properties" defaultOpen>
+    <ResponseField name="total" type="number" required>
+      Total number of registered users.
+    </ResponseField>
+    <ResponseField name="activos" type="number" required>
+      Number of active users.
+    </ResponseField>
+    <ResponseField name="pendientes" type="number" required>
+      Number of users pending approval or activation.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="edificios" type="object" required>
+  Aggregated building counts.
+  <Expandable title="properties" defaultOpen>
+    <ResponseField name="total" type="number" required>
+      Total number of buildings on campus.
+    </ResponseField>
+    <ResponseField name="activos" type="number" required>
+      Number of currently active buildings.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="salones" type="number" required>
+  Total number of classrooms across all buildings.
+</ResponseField>
+
+<ResponseField name="profesores" type="number" required>
+  Total number of professors registered in the system.
+</ResponseField>
+
+<ResponseField name="cubiculos" type="number" required>
+  Total number of faculty cubicles.
+</ResponseField>
+
+<ResponseField name="eventos" type="object" required>
+  Aggregated event counts.
+  <Expandable title="properties" defaultOpen>
+    <ResponseField name="total" type="number" required>
+      Total number of events.
+    </ResponseField>
+    <ResponseField name="activos" type="number" required>
+      Number of events that are currently active.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="rutas" type="object" required>
+  Aggregated navigation route counts.
+  <Expandable title="properties" defaultOpen>
+    <ResponseField name="total" type="number" required>
+      Total number of saved routes.
+    </ResponseField>
+    <ResponseField name="activas" type="number" required>
+      Number of currently active routes.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="totalAccesos" type="number" required>
+  Cumulative count of all recorded access events across the system.
+</ResponseField>
+
+## Example
+
+```bash
+curl http://localhost:3001/api/analytics/dashboard \
+  -H "Authorization: Bearer <your-token>"
+```
+
+```json
+{
+  "usuarios": {
+    "total": 342,
+    "activos": 289,
+    "pendientes": 14
+  },
+  "edificios": {
+    "total": 18,
+    "activos": 16
+  },
+  "salones": 204,
+  "profesores": 87,
+  "cubiculos": 53,
+  "eventos": {
+    "total": 31,
+    "activos": 7
+  },
+  "rutas": {
+    "total": 1024,
+    "activas": 978
+  },
+  "totalAccesos": 48291
+}
+```
+
+## Error codes
+
+| Status | Description |
+|--------|-------------|
+| `401`  | Missing or invalid Bearer token. |
+| `500`  | Internal server error. |

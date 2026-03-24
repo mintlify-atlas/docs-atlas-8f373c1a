@@ -1,0 +1,107 @@
+---
+title: 'List events'
+description: 'Retrieve all campus events, including nested building information.'
+---
+
+## GET /api/eventos
+
+Returns an array of all events registered in the system. This is a public endpoint — no authentication is required.
+
+<Info>
+  The base URL is `http://localhost:3001/api` by default. Override it with the `VITE_API_URL` environment variable.
+</Info>
+
+## Request
+
+No parameters are required.
+
+## Response
+
+Returns an array of `Evento` objects.
+
+<ResponseField name="id_evento" type="number" required>
+  Unique identifier for the event.
+</ResponseField>
+
+<ResponseField name="nombre" type="string" required>
+  Display name of the event.
+</ResponseField>
+
+<ResponseField name="descripcion" type="string">
+  Optional description of the event.
+</ResponseField>
+
+<ResponseField name="fecha_inicio" type="string" required>
+  Event start date and time in ISO 8601 format (e.g., `2026-04-01T09:00:00.000Z`).
+</ResponseField>
+
+<ResponseField name="fecha_fin" type="string" required>
+  Event end date and time in ISO 8601 format.
+</ResponseField>
+
+<ResponseField name="id_edificio" type="number" required>
+  Foreign key referencing the building where the event takes place.
+</ResponseField>
+
+<ResponseField name="publico" type="boolean" required>
+  Whether the event is open to the public.
+</ResponseField>
+
+<ResponseField name="activo" type="boolean" required>
+  Whether the event is currently active.
+</ResponseField>
+
+<ResponseField name="edificio" type="object">
+  Nested building record associated with the event.
+  <Expandable title="properties">
+    <ResponseField name="id_edificio" type="number" required>
+      Unique identifier of the building.
+    </ResponseField>
+    <ResponseField name="nombre" type="string" required>
+      Building name.
+    </ResponseField>
+    <ResponseField name="tipo" type="string" required>
+      Building type (e.g., `academico`, `administrativo`).
+    </ResponseField>
+    <ResponseField name="latitud" type="number" required>
+      Geographic latitude of the building.
+    </ResponseField>
+    <ResponseField name="longitud" type="number" required>
+      Geographic longitude of the building.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example
+
+```bash
+curl http://localhost:3001/api/eventos
+```
+
+```json
+[
+  {
+    "id_evento": 1,
+    "nombre": "Conferencia de Tecnología",
+    "descripcion": "Ponencias sobre IA y desarrollo de software.",
+    "fecha_inicio": "2026-04-10T09:00:00.000Z",
+    "fecha_fin": "2026-04-10T18:00:00.000Z",
+    "id_edificio": 3,
+    "publico": true,
+    "activo": true,
+    "edificio": {
+      "id_edificio": 3,
+      "nombre": "Centro de Cómputo",
+      "tipo": "academico",
+      "latitud": 19.4326,
+      "longitud": -99.1332
+    }
+  }
+]
+```
+
+## Error codes
+
+| Status | Description |
+|--------|-------------|
+| `500`  | Internal server error. |

@@ -1,0 +1,49 @@
+---
+title: 'Delete event'
+description: 'Permanently delete a campus event by ID. Requires admin authentication.'
+---
+
+## DELETE /api/eventos/:id
+
+Permanently removes an event from the system. This action cannot be undone.
+
+<Warning>
+  Deletion is permanent. Consider setting `activo: false` via [Update event](/api/eventos/update) if you want to hide an event without losing its data.
+</Warning>
+
+<Info>
+  This endpoint requires a valid admin Bearer token in the `Authorization` header.
+</Info>
+
+## Request
+
+**Path parameters**
+
+<ParamField path="id" type="number" required>
+  The `id_evento` of the event to delete.
+</ParamField>
+
+**Headers**
+
+<ParamField path="header.Authorization" type="string" required>
+  Bearer token for admin authentication. Format: `Bearer <token>`.
+</ParamField>
+
+## Response
+
+Returns `204 No Content` on success with an empty body.
+
+## Example
+
+```bash
+curl -X DELETE http://localhost:3001/api/eventos/12 \
+  -H "Authorization: Bearer <your-token>"
+```
+
+## Error codes
+
+| Status | Description |
+|--------|-------------|
+| `401`  | Missing or invalid Bearer token. |
+| `404`  | No event found with the given `id`. |
+| `500`  | Internal server error. |

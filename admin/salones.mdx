@@ -1,0 +1,143 @@
+---
+title: Salones management
+description: Create, edit, and delete classrooms (salones) within campus buildings in the AirGuide admin panel.
+---
+
+Salones are individual rooms within a building — classrooms, laboratories, auditoriums, and offices. Each salón belongs to exactly one building (`id_edificio`) and carries its own floor, capacity, and type information.
+
+<Info>
+  Salones are fetched from `GET /api/edificios/salones` and created via `POST /api/edificios/:id_edificio/salones`. The building relationship is set at creation time and reflected in the `edificio` relation on the `Salon` object.
+</Info>
+
+## Summary stats
+
+Above the table, four stat cards give a quick overview of the salon inventory:
+
+| Card | Value |
+|---|---|
+| Total Salones | Total count of all salones |
+| Aulas | Count of salones where `tipo === 'aula'` |
+| Laboratorios | Count of salones where `tipo === 'laboratorio'` |
+| Capacidad Total | Sum of `capacidad` across all salones |
+
+## Salones table
+
+The search bar filters by `salon.nombre` or the associated `salon.edificio.nombre` (case-insensitive). Columns:
+
+| Column | Description |
+|---|---|
+| Salón | Room name |
+| Edificio | Parent building name |
+| Tipo | Color-coded type badge |
+| Piso | Floor number (e.g. `Piso 2`) |
+| Capacidad | Seating capacity (e.g. `30 personas`) |
+| Estado | Green `Activo` or red `Inactivo` badge |
+| Acciones | Edit (pencil) and Delete (trash) icon buttons |
+
+### Type badge colors
+
+| Tipo | Color |
+|---|---|
+| `aula` | Blue |
+| `laboratorio` | Purple |
+| `auditorio` | Green |
+| `oficina` | Orange |
+
+## Creating and editing a salón
+
+Click **Nuevo Salón** to open the create modal. Click the pencil icon on any row to open the edit modal pre-filled with that salón's data.
+
+### Form fields
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `nombre` | text | Yes | E.g. `Aula 101` |
+| `id_edificio` | select | Yes | Dropdown of all buildings; sets the parent building |
+| `tipo` | select | Yes | `aula` \| `laboratorio` \| `auditorio` \| `oficina` — defaults to `aula` |
+| `piso` | number (`min="1"`) | Yes | Floor number, must be at least 1 |
+| `capacidad` | number (`min="1"`) | Yes | Maximum occupancy, must be at least 1 |
+| `activo` | checkbox | — | Checked by default |
+
+### API calls
+
+<CodeGroup>
+
+```http Create salón
+POST /api/edificios/:id_edificio/salones
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre": "Aula 101",
+  "capacidad": 30,
+  "tipo": "aula",
+  "id_edificio": 2,
+  "piso": 1,
+  "activo": true
+}
+```
+
+```http Update salón
+PUT /api/edificios/salones/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "nombre": "Aula 101",
+  "capacidad": 35,
+  "tipo": "aula",
+  "id_edificio": 2,
+  "piso": 1,
+  "activo": true
+}
+```
+
+```http Delete salón
+DELETE /api/edificios/salones/:id
+Authorization: Bearer <token>
+```
+
+</CodeGroup>
+
+On success, the modal closes and `fetchSalones()` refreshes the table. Errors surface as a `sonner` toast.
+
+## Deleting a salón
+
+Clicking the trash icon opens a **delete confirmation modal** with:
+
+- A red trash icon in a circular badge
+- The heading "Eliminar Salón"
+- The subheading "Esta acción no se puede deshacer"
+- The salón name in bold: *¿Estás seguro de que deseas eliminar el salón **"\{nombre}"**?*
+- **Cancelar** and **Eliminar** buttons
+
+<Warning>
+  Deletion is permanent. Removing a salón cannot be undone.
+</Warning>
+
+## `Salon` data model
+
+```ts
+interface Salon {
+  id_salon: number;
+  nombre: string;
+  capacidad: number;
+  tipo: 'aula' | 'laboratorio' | 'auditorio' | 'oficina';
+  id_edificio: number;
+  piso: number;
+  activo: boolean;
+  edificio?: {
+    id_edificio: number;
+    nombre: string;
+    tipo: string;
+  };
+}
+```
+
+## Relationship with buildings
+
+Every salón belongs to one building via `id_edificio`. When you select a building in the creation form, the API creates the salón under that building's namespace (`POST /api/edificios/:id_edificio/salones`). The `edificio` relation is included in the list response so the table can display the parent building name without a separate request.
+
+<Tip>
+  Before creating salones, make sure the target building exists and is set to `activo: true` in [Buildings management](/admin/buildings).
+</Tip>

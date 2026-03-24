@@ -1,0 +1,111 @@
+---
+title: 'List buildings'
+description: 'Retrieve all campus buildings registered in AirGuide.'
+---
+
+## `GET /api/edificios`
+
+Returns an array of all campus buildings. Each building includes a `_count` object with the number of associated classrooms (`salones`), study rooms (`cubiculos`), and events (`eventos`).
+
+<Info>This is a public endpoint. No authentication is required.</Info>
+
+---
+
+## Response
+
+### 200 — Success
+
+Returns an array of `Edificio` objects.
+
+<ResponseField name="id_edificio" type="number" required>
+  Unique building identifier.
+</ResponseField>
+
+<ResponseField name="nombre" type="string" required>
+  Building name.
+</ResponseField>
+
+<ResponseField name="descripcion" type="string">
+  Optional description of the building. May be `null`.
+</ResponseField>
+
+<ResponseField name="latitud" type="number" required>
+  GPS latitude coordinate.
+</ResponseField>
+
+<ResponseField name="longitud" type="number" required>
+  GPS longitude coordinate.
+</ResponseField>
+
+<ResponseField name="tipo" type="string" required>
+  Building category. One of `academico`, `administrativo`, or `recreativo`.
+</ResponseField>
+
+<ResponseField name="activo" type="boolean" required>
+  Whether the building is currently active and visible on the campus map.
+</ResponseField>
+
+<ResponseField name="_count" type="object">
+  Counts of associated resources.
+  <Expandable title="properties">
+    <ResponseField name="salones" type="number">
+      Number of classrooms in the building.
+    </ResponseField>
+    <ResponseField name="cubiculos" type="number">
+      Number of study rooms in the building.
+    </ResponseField>
+    <ResponseField name="eventos" type="number">
+      Number of events associated with the building.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl --request GET \
+  --url http://localhost:3001/api/edificios
+```
+
+```typescript TypeScript
+const response = await fetch('http://localhost:3001/api/edificios');
+const edificios = await response.json();
+
+// edificios is an array of Edificio objects
+const active = edificios.filter((e: Edificio) => e.activo);
+```
+
+</CodeGroup>
+
+### Example response
+
+```json
+[
+  {
+    "id_edificio": 1,
+    "nombre": "Edificio de Ingenierías",
+    "descripcion": "Facultad de Ciencias e Ingenierías",
+    "latitud": 25.6514,
+    "longitud": -100.2895,
+    "tipo": "academico",
+    "activo": true,
+    "_count": {
+      "salones": 24,
+      "cubiculos": 8,
+      "eventos": 3
+    }
+  }
+]
+```
+
+---
+
+## Error codes
+
+| Status | Description |
+| --- | --- |
+| `500` | Server error while retrieving buildings. |

@@ -1,0 +1,99 @@
+---
+title: 'Login'
+description: 'Authenticate a user and retrieve a JWT for subsequent API requests.'
+---
+
+## `POST /api/auth/login`
+
+Authenticates a user with their email and password. On success, returns a signed JWT and the user object. Store the token in `localStorage` under the key `token` and include it as a Bearer token on all protected requests.
+
+<Info>This endpoint does not require authentication.</Info>
+
+---
+
+## Request
+
+### Body
+
+<ParamField body="correo" type="string" required>
+  The user's email address.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's password.
+</ParamField>
+
+---
+
+## Response
+
+### 200 — Success
+
+<ResponseField name="token" type="string" required>
+  Signed JWT. Include this value as `Authorization: Bearer <token>` on protected requests.
+</ResponseField>
+
+<ResponseField name="usuario" type="object" required>
+  The authenticated user.
+  <Expandable title="properties">
+    <ResponseField name="id" type="number">
+      Unique user identifier.
+    </ResponseField>
+    <ResponseField name="correo" type="string">
+      User's email address.
+    </ResponseField>
+    <ResponseField name="nombre" type="string">
+      User's full name.
+    </ResponseField>
+    <ResponseField name="matricula" type="string">
+      Student or staff ID number.
+    </ResponseField>
+    <ResponseField name="rol" type="string">
+      User role. One of `admin` or `alumno`.
+    </ResponseField>
+    <ResponseField name="estado" type="string">
+      Account status. One of `pendiente`, `activo`, or `rechazado`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl --request POST \
+  --url http://localhost:3001/api/auth/login \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "correo": "usuario@universidad.edu",
+    "password": "mypassword"
+  }'
+```
+
+```typescript TypeScript
+const response = await fetch('http://localhost:3001/api/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    correo: 'usuario@universidad.edu',
+    password: 'mypassword',
+  }),
+});
+
+const { token, usuario } = await response.json();
+localStorage.setItem('token', token);
+```
+
+</CodeGroup>
+
+---
+
+## Error codes
+
+| Status | Description |
+| --- | --- |
+| `401` | Invalid credentials. The email or password is incorrect. |
+| `403` | Account is not active. The account may be pending admin approval or has been rejected. |

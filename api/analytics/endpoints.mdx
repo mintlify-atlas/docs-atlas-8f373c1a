@@ -1,0 +1,201 @@
+---
+title: 'Analytics endpoints'
+description: 'Additional analytics endpoints for buildings, events, access logs, users, and routes.'
+---
+
+## Overview
+
+These endpoints provide granular analytics data to power charts and reports in the admin dashboard. All endpoints require a valid admin Bearer token.
+
+<Info>
+  Include `Authorization: Bearer <token>` in every request to these endpoints.
+</Info>
+
+---
+
+## GET /api/analytics/edificios-tipo
+
+Returns a breakdown of buildings grouped by their type.
+
+**Response** — array of objects:
+
+<ResponseField name="tipo" type="string" required>
+  Building type label (e.g., `academico`, `administrativo`, `servicios`).
+</ResponseField>
+
+<ResponseField name="cantidad" type="number" required>
+  Number of buildings of that type.
+</ResponseField>
+
+```bash
+curl http://localhost:3001/api/analytics/edificios-tipo \
+  -H "Authorization: Bearer <your-token>"
+```
+
+```json
+[
+  { "tipo": "academico", "cantidad": 10 },
+  { "tipo": "administrativo", "cantidad": 4 },
+  { "tipo": "servicios", "cantidad": 4 }
+]
+```
+
+---
+
+## GET /api/analytics/eventos-proximos
+
+Returns a list of upcoming events — events whose `fecha_inicio` is in the future and whose `activo` flag is `true`.
+
+**Response** — array of `Evento` objects. See [List events](/api/eventos/list) for the full field reference.
+
+```bash
+curl http://localhost:3001/api/analytics/eventos-proximos \
+  -H "Authorization: Bearer <your-token>"
+```
+
+```json
+[
+  {
+    "id_evento": 5,
+    "nombre": "Semana de Bienvenida",
+    "fecha_inicio": "2026-04-20T08:00:00.000Z",
+    "fecha_fin": "2026-04-24T18:00:00.000Z",
+    "publico": true,
+    "activo": true
+  }
+]
+```
+
+---
+
+## GET /api/analytics/accesos-recientes
+
+Returns recent access log entries within the specified number of days.
+
+**Query parameters**
+
+<ParamField query="days" type="number" default="7">
+  Number of past days to include in the results.
+</ParamField>
+
+```bash
+curl "http://localhost:3001/api/analytics/accesos-recientes?days=7" \
+  -H "Authorization: Bearer <your-token>"
+```
+
+```json
+[
+  {
+    "id_acceso": 1482,
+    "fecha": "2026-03-24T14:32:00.000Z",
+    "usuario": "jdoe",
+    "edificio": "Biblioteca Central"
+  }
+]
+```
+
+---
+
+## GET /api/analytics/accesos-timeline
+
+Returns a day-by-day timeline of access counts for the specified window. Useful for rendering time-series charts.
+
+**Query parameters**
+
+<ParamField query="days" type="number" default="30">
+  Number of past days to include in the timeline.
+</ParamField>
+
+**Response** — array of daily totals:
+
+<ResponseField name="fecha" type="string" required>
+  Date in ISO 8601 format (e.g., `2026-03-24`).
+</ResponseField>
+
+<ResponseField name="accesos" type="number" required>
+  Number of access events recorded on that date.
+</ResponseField>
+
+```bash
+curl "http://localhost:3001/api/analytics/accesos-timeline?days=30" \
+  -H "Authorization: Bearer <your-token>"
+```
+
+```json
+[
+  { "fecha": "2026-03-01", "accesos": 312 },
+  { "fecha": "2026-03-02", "accesos": 278 }
+]
+```
+
+---
+
+## GET /api/analytics/usuarios-rol
+
+Returns a breakdown of users grouped by their assigned role.
+
+**Response** — array of objects:
+
+<ResponseField name="rol" type="string" required>
+  Role name (e.g., `admin`, `profesor`, `estudiante`).
+</ResponseField>
+
+<ResponseField name="cantidad" type="number" required>
+  Number of users with that role.
+</ResponseField>
+
+```bash
+curl http://localhost:3001/api/analytics/usuarios-rol \
+  -H "Authorization: Bearer <your-token>"
+```
+
+```json
+[
+  { "rol": "admin", "cantidad": 3 },
+  { "rol": "profesor", "cantidad": 87 },
+  { "rol": "estudiante", "cantidad": 252 }
+]
+```
+
+---
+
+## GET /api/analytics/rutas-populares
+
+Returns the most frequently used navigation routes on campus, ordered by usage count.
+
+**Response** — array of objects:
+
+<ResponseField name="origen" type="string" required>
+  Name or identifier of the route's starting point.
+</ResponseField>
+
+<ResponseField name="destino" type="string" required>
+  Name or identifier of the route's destination.
+</ResponseField>
+
+<ResponseField name="usos" type="number" required>
+  Total number of times this route has been navigated.
+</ResponseField>
+
+```bash
+curl http://localhost:3001/api/analytics/rutas-populares \
+  -H "Authorization: Bearer <your-token>"
+```
+
+```json
+[
+  { "origen": "Entrada Principal", "destino": "Biblioteca Central", "usos": 1042 },
+  { "origen": "Estacionamiento Norte", "destino": "Facultad de Ingeniería", "usos": 876 }
+]
+```
+
+---
+
+## Error codes
+
+All endpoints in this section share the same error responses.
+
+| Status | Description |
+|--------|-------------|
+| `401`  | Missing or invalid Bearer token. |
+| `500`  | Internal server error. |

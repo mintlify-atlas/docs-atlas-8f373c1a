@@ -1,0 +1,65 @@
+---
+title: Navigating the campus map
+description: How to view the campus map, read markers, inspect building and event details, and get directions.
+keywords: ['map', 'navigation', 'buildings', 'events', 'markers', 'routing', 'directions']
+---
+
+The AirGuide map is the home page at `/`. It loads automatically for all visitors — no account is required to view the campus.
+
+## Viewing the map
+
+The map opens centered on campus at coordinates **20.656333, -100.404745** with a zoom level of 15. All campus buildings and active events are loaded and pinned on the map automatically.
+
+A legend in the bottom-left corner shows the two marker types:
+
+<CardGroup cols={2}>
+  <Card title="Buildings" icon="building">
+    Blue markers represent campus buildings such as classrooms, labs, and administrative offices.
+  </Card>
+  <Card title="Events" icon="calendar">
+    Green markers represent events tied to a specific building location.
+  </Card>
+</CardGroup>
+
+## Inspecting a marker
+
+Click any marker on the map. A detail panel opens in the top-right corner of the screen.
+
+### Building details
+
+Clicking a blue building marker shows:
+
+- **Name** and **type** (e.g., Aula, Laboratorio)
+- **Description** of the building
+- Counts for **salones** (classrooms), **cubículos** (cubicles), and **eventos** (events) hosted there
+
+### Event details
+
+Clicking a green event marker shows:
+
+- **Name** and **description** of the event
+- **Start and end dates**
+- **Location** — the name of the building where the event takes place
+
+Close the panel at any time by clicking the **×** button in its top-right corner.
+
+## Guest vs. logged-in student
+
+The map is publicly visible, but certain features require a logged-in student account (`alumno` role).
+
+| Feature | Guest | Logged-in student |
+|---|---|---|
+| View map and markers | Yes | Yes |
+| Read building and event details | Yes | Yes |
+| **Cómo llegar** (get directions) button | No | Yes |
+| Route calculation panel | Yes | Yes |
+
+<Info>
+  When viewing a building or event as a guest, a note below the detail panel reads "Inicia sesión para acceder a más rutas". Log in at `/login` to unlock the **Cómo llegar** button.
+</Info>
+
+## Getting directions
+
+If you are logged in as a student, each marker detail panel includes a **Cómo llegar** button. Clicking it opens the route calculation flow.
+
+For full details on how routing works, see [Route calculation](/features/routing).

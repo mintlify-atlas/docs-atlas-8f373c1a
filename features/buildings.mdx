@@ -1,0 +1,131 @@
+---
+title: "Buildings"
+description: "Campus buildings (edificios) appear as blue markers on the interactive map. Each building has a type, description, and counts of associated rooms and events."
+---
+
+Buildings are the primary spatial entities in AirGuide. They represent physical locations on campus and act as anchor points for both classrooms (salones), office spaces (cubículos), and events.
+
+## Data model
+
+The `Edificio` interface is defined in `useEdificios.ts`:
+
+```typescript useEdificios.ts
+export interface Edificio {
+  id_edificio: number;
+  nombre: string;
+  descripcion?: string | null;
+  latitud: number;
+  longitud: number;
+  tipo: 'academico' | 'administrativo' | 'recreativo';
+  activo: boolean;
+  _count?: {
+    salones: number;
+    cubiculos: number;
+    eventos: number;
+  };
+}
+```
+
+### Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id_edificio` | `number` | Primary key |
+| `nombre` | `string` | Display name shown on markers and in the info panel |
+| `descripcion` | `string \| null` | Optional description shown in the info panel |
+| `latitud` | `number` | WGS84 latitude used to place the marker |
+| `longitud` | `number` | WGS84 longitude used to place the marker |
+| `tipo` | `'academico' \| 'administrativo' \| 'recreativo'` | Building category |
+| `activo` | `boolean` | Whether the building is displayed on the map |
+| `_count.salones` | `number` | Number of classrooms in this building |
+| `_count.cubiculos` | `number` | Number of office/study cubicles in this building |
+| `_count.eventos` | `number` | Number of events associated with this building |
+
+## Fetching buildings
+
+Buildings are fetched by the `useEdificios` hook on mount. The endpoint is public — no authentication is required.
+
+```typescript useEdificios.ts
+const fetchEdificios = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await fetch(`${API_URL}/edificios`);
+    if (!response.ok) throw new Error('Error al cargar edificios');
+    const data = await response.json();
+    setEdificios(data);
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+<Info>
+  The API base URL is set via the `VITE_API_URL` environment variable. It defaults to `http://localhost:3001/api` for local development.
+</Info>
+
+## Building types
+
+Each building belongs to one of three categories. The type is displayed as a badge in the marker info panel.
+
+<CardGroup cols={3}>
+  <Card title="Academico" icon="graduation-cap" color="#3B82F6">
+    Academic buildings: lecture halls, laboratories, faculties, and other teaching spaces.
+  </Card>
+  <Card title="Administrativo" icon="briefcase" color="#8B5CF6">
+    Administrative buildings: offices, registrar, human resources, and institutional services.
+  </Card>
+  <Card title="Recreativo" icon="tree" color="#10B981">
+    Recreational buildings: sports facilities, cafeteria, student lounges, and common areas.
+  </Card>
+</CardGroup>
+
+## Marker info panel
+
+Clicking a blue building marker opens the info panel in the top-right corner of the map. The panel shows:
+
+<Steps>
+  <Step title="Building name">
+    Displayed as a large heading at the top of the panel.
+  </Step>
+  <Step title="Type badge">
+    A blue pill badge showing `academico`, `administrativo`, or `recreativo`.
+  </Step>
+  <Step title="Description">
+    The optional `descripcion` field rendered as body text. Hidden if empty.
+  </Step>
+  <Step title="Counts grid">
+    A 3-column grid showing the number of salones, cubículos, and eventos associated with the building.
+  </Step>
+</Steps>
+
+```tsx Map.tsx
+{selectedMarker._count && (
+  <div className="grid grid-cols-3 gap-2 mb-3">
+    <div className="text-center p-2 bg-[var(--app-hover)] rounded">
+      <div className="text-lg font-semibold">{selectedMarker._count.salones}</div>
+      <div className="text-xs">Salones</div>
+    </div>
+    <div className="text-center p-2 bg-[var(--app-hover)] rounded">
+      <div className="text-lg font-semibold">{selectedMarker._count.cubiculos}</div>
+      <div className="text-xs">Cubículos</div>
+    </div>
+    <div className="text-center p-2 bg-[var(--app-hover)] rounded">
+      <div className="text-lg font-semibold">{selectedMarker._count.eventos}</div>
+      <div className="text-xs">Eventos</div>
+    </div>
+  </div>
+)}
+```
+
+## Admin management
+
+Administrators can create, edit, and delete buildings through the admin dashboard. CRUD operations require a valid JWT token with the `admin` role.
+
+<Warning>
+  Setting `activo` to `false` hides the building from the public map immediately. Any events associated with that building will also lose their map position.
+</Warning>
+
+See the [admin buildings guide](/admin/buildings) for full instructions on managing campus buildings.

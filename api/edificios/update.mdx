@@ -1,0 +1,135 @@
+---
+title: 'Update building'
+description: 'Update the details of an existing campus building. Requires admin authentication.'
+---
+
+## `PUT /api/edificios/:id`
+
+Updates one or more fields of an existing building. Only the fields included in the request body are modified. Returns the full updated `Edificio` object.
+
+<Info>Requires a valid Bearer token with the `admin` role.</Info>
+
+---
+
+## Request
+
+### Path parameters
+
+<ParamField path="id" type="number" required>
+  The `id_edificio` of the building to update.
+</ParamField>
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token obtained from [POST /api/auth/login](/api/auth/login). Format: `Bearer <token>`.
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+### Body
+
+All body fields are optional. Include only the fields you want to change.
+
+<ParamField body="nombre" type="string">
+  Updated building name.
+</ParamField>
+
+<ParamField body="descripcion" type="string">
+  Updated description. Pass `null` to clear the description.
+</ParamField>
+
+<ParamField body="latitud" type="number">
+  Updated GPS latitude coordinate.
+</ParamField>
+
+<ParamField body="longitud" type="number">
+  Updated GPS longitude coordinate.
+</ParamField>
+
+<ParamField body="tipo" type="string">
+  Updated building category. One of `academico`, `administrativo`, or `recreativo`.
+</ParamField>
+
+<ParamField body="activo" type="boolean">
+  Set to `false` to hide the building from the campus map without deleting it.
+</ParamField>
+
+---
+
+## Response
+
+### 200 — Success
+
+Returns the full updated `Edificio` object.
+
+<ResponseField name="id_edificio" type="number" required>
+  Building identifier.
+</ResponseField>
+
+<ResponseField name="nombre" type="string" required>
+  Building name.
+</ResponseField>
+
+<ResponseField name="descripcion" type="string">
+  Building description. May be `null`.
+</ResponseField>
+
+<ResponseField name="latitud" type="number" required>
+  GPS latitude coordinate.
+</ResponseField>
+
+<ResponseField name="longitud" type="number" required>
+  GPS longitude coordinate.
+</ResponseField>
+
+<ResponseField name="tipo" type="string" required>
+  Building category: `academico`, `administrativo`, or `recreativo`.
+</ResponseField>
+
+<ResponseField name="activo" type="boolean" required>
+  Whether the building is active and visible on the map.
+</ResponseField>
+
+---
+
+## Examples
+
+```bash cURL
+curl --request PUT \
+  --url http://localhost:3001/api/edificios/12 \
+  --header 'Authorization: Bearer <token>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "nombre": "Centro de Innovación y Tecnología",
+    "activo": false
+  }'
+```
+
+### Example response
+
+```json
+{
+  "id_edificio": 12,
+  "nombre": "Centro de Innovación y Tecnología",
+  "descripcion": "Hub de startups y laboratorios de investigación",
+  "latitud": 25.6521,
+  "longitud": -100.2901,
+  "tipo": "academico",
+  "activo": false
+}
+```
+
+---
+
+## Error codes
+
+| Status | Description |
+| --- | --- |
+| `400` | Invalid field values in the request body. |
+| `401` | No token provided or token is invalid. |
+| `403` | Authenticated user does not have the `admin` role. |
+| `404` | No building found with the given `id`. |
+| `500` | Server error while updating the building. |

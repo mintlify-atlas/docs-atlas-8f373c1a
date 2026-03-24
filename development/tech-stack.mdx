@@ -1,0 +1,271 @@
+---
+title: 'Tech stack'
+description: 'Overview of every technology, library, and design system used in AirGuide, with exact package versions from package.json.'
+---
+
+AirGuide is split into two packages: a React/TypeScript frontend at the project root and a Node.js/Express backend in the `server/` directory. Both share a single PostgreSQL database managed through Prisma Cloud.
+
+## Frontend
+
+### Core framework
+
+<Columns cols={3}>
+  <Card title="React 18.3.1" icon="react">
+    Component model for the entire UI. Uses the new JSX transform (`react-jsx`) configured in `tsconfig.json`.
+  </Card>
+  <Card title="TypeScript" icon="code">
+    Strict mode enabled. Targets ES2022, with `noUnusedLocals`, `noUnusedParameters`, and `noImplicitReturns` enforced.
+  </Card>
+  <Card title="Vite 6.3.5" icon="bolt">
+    Build tool and dev server. The `@` path alias resolves to `src/`. Supports raw imports for `.svg` and `.csv` files.
+  </Card>
+</Columns>
+
+```typescript vite.config.ts
+import { defineConfig } from 'vite'
+import path from 'path'
+import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: { '@': path.resolve(__dirname, './src') },
+  },
+  assetsInclude: ['**/*.svg', '**/*.csv'],
+})
+```
+
+### Routing
+
+**react-router 7.13.0** — Client-side routing. Provides `<BrowserRouter>`, `<Routes>`, and `useNavigate` throughout the application.
+
+### Styling
+
+<Columns cols={2}>
+  <Card title="Tailwind CSS v4" icon="palette">
+    Version 4.1.12, integrated via the `@tailwindcss/vite` plugin. Utility classes are the primary styling mechanism across all components.
+  </Card>
+  <Card title="tw-animate-css 1.3.8" icon="sparkles">
+    Drop-in animation utilities for Tailwind. Used for entrance and exit animations on modals, dropdowns, and panels.
+  </Card>
+</Columns>
+
+CSS custom properties from the design system are consumed directly in component styles using the `var(--token-name)` pattern.
+
+### UI components
+
+AirGuide uses two component libraries together:
+
+**Radix UI** — Unstyled, accessible primitives. The following packages are installed:
+
+| Package | Version |
+|---|---|
+| `@radix-ui/react-accordion` | 1.2.3 |
+| `@radix-ui/react-alert-dialog` | 1.1.6 |
+| `@radix-ui/react-dialog` | 1.1.6 |
+| `@radix-ui/react-dropdown-menu` | 2.1.6 |
+| `@radix-ui/react-select` | 2.1.6 |
+| `@radix-ui/react-tooltip` | 1.1.8 |
+| `@radix-ui/react-popover` | 1.1.6 |
+| `@radix-ui/react-tabs` | 1.1.3 |
+| `@radix-ui/react-checkbox` | 1.1.4 |
+| `@radix-ui/react-radio-group` | 1.2.3 |
+| `@radix-ui/react-switch` | 1.1.3 |
+| `@radix-ui/react-slider` | 1.2.3 |
+| `@radix-ui/react-progress` | 1.1.2 |
+| `@radix-ui/react-scroll-area` | 1.2.3 |
+| `@radix-ui/react-avatar` | 1.1.3 |
+| `@radix-ui/react-label` | 2.1.2 |
+| `@radix-ui/react-separator` | 1.1.2 |
+| `@radix-ui/react-navigation-menu` | 1.2.5 |
+| `@radix-ui/react-menubar` | 1.1.6 |
+| `@radix-ui/react-context-menu` | 2.2.6 |
+| `@radix-ui/react-hover-card` | 1.1.6 |
+| `@radix-ui/react-collapsible` | 1.1.3 |
+| `@radix-ui/react-toggle` | 1.1.2 |
+
+**MUI (Material UI) 7.3.5** — `@mui/material` and `@mui/icons-material`, backed by `@emotion/react` 11.14.0 and `@emotion/styled` 11.14.1.
+
+**lucide-react 0.487.0** — Icon library. The design system specifies `MapPin`, `Navigation`, `Route`, `Calendar`, `BarChart3`, `LayoutDashboard`, `Settings`, `LogOut`, `Moon`, `Sun`, and others as the standard icon set.
+
+### Mapping
+
+<Columns cols={3}>
+  <Card title="leaflet 1.9.4" icon="map-pin">
+    Core mapping engine. Renders the interactive campus map with tile layers, markers, and polygons.
+  </Card>
+  <Card title="react-leaflet 5.0.0" icon="map">
+    React bindings for Leaflet. Provides `<MapContainer>`, `<TileLayer>`, `<Marker>`, and related components.
+  </Card>
+  <Card title="leaflet-routing-machine 3.2.12" icon="route">
+    Turn-by-turn routing overlay for Leaflet. Powers the campus navigation and route display features.
+  </Card>
+</Columns>
+
+### Charts
+
+**recharts 2.15.2** — Composable chart library built on D3. Used in the analytics dashboard to render usage statistics.
+
+### Forms
+
+**react-hook-form 7.55.0** — Performant form state management with minimal re-renders. Used across all admin and data-entry forms.
+
+### Animations
+
+**motion 12.23.24** — The Framer Motion animation library (published as the `motion` package). Drives page transitions, modal animations, and interactive UI effects.
+
+### Notifications
+
+**sonner 2.0.3** — Toast notification system. Displays success and error feedback after API operations.
+
+### Date handling
+
+**date-fns 3.6.0** — Utility functions for parsing, formatting, and manipulating dates. Used in event scheduling and calendar views alongside `react-day-picker 8.10.1`.
+
+### Additional utilities
+
+| Package | Version | Purpose |
+|---|---|---|
+| `clsx` | 2.1.1 | Conditional class name merging |
+| `tailwind-merge` | 3.2.0 | Merges Tailwind classes without conflicts |
+| `class-variance-authority` | 0.7.1 | Typed variant API for component styles |
+| `cmdk` | 1.1.1 | Command palette component |
+| `next-themes` | 0.4.6 | Theme switching (light/dark) |
+| `vaul` | 1.1.2 | Drawer/sheet component |
+| `react-resizable-panels` | 2.1.7 | Resizable layout panels |
+| `embla-carousel-react` | 8.6.0 | Touch-friendly carousel |
+| `react-dnd` | 16.0.1 | Drag-and-drop interactions |
+| `input-otp` | 1.4.2 | OTP input component |
+
+---
+
+## Backend
+
+<Columns cols={3}>
+  <Card title="Node.js 22" icon="server">
+    Runtime environment. Version pinned in `.nvmrc`.
+  </Card>
+  <Card title="Express" icon="zap">
+    HTTP framework for the REST API. Runs on port 3001. CORS is restricted to the origin defined by `CORS_ORIGIN`.
+  </Card>
+  <Card title="Prisma ORM" icon="database">
+    Type-safe database client and migration tool. Connects to a PostgreSQL instance hosted on Prisma Cloud.
+  </Card>
+</Columns>
+
+### Authentication
+
+JWT-based authentication using `jsonwebtoken`. The API expects a `Bearer <token>` header on protected routes. Tokens are signed with `JWT_SECRET` and expire after the duration set in `JWT_EXPIRES_IN`.
+
+The frontend stores the token in `localStorage` and attaches it to mutating requests:
+
+```typescript
+const token = localStorage.getItem('token');
+const response = await fetch(`${API_URL}/edificios`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  },
+  body: JSON.stringify(data),
+});
+```
+
+### Database
+
+PostgreSQL hosted on **Prisma Cloud**. The connection string in `DATABASE_URL` includes connection pooling (`pool=true`) and SSL (`sslmode=require`).
+
+Prisma Studio provides a visual interface to browse and edit records:
+
+```bash
+cd server
+npm run prisma:studio
+```
+
+---
+
+## Design system
+
+The design system is defined in `design-tokens.json` and exposed as CSS custom properties. All component styles reference these variables rather than hard-coded values.
+
+### Color tokens
+
+Tokens are provided for both light and dark mode:
+
+<Columns cols={2}>
+  <Card title="Light mode" icon="sun">
+
+| Token | Value | Usage |
+|---|---|---|
+| `--app-bg` | `#f9fafb` | App background |
+| `--app-header-bg` | `#ffffff` | Headers and cards |
+| `--app-sidebar-bg` | `#ffffff` | Sidebar background |
+| `--app-hover` | `#f3f4f6` | Hover states, inputs |
+| `--app-text-primary` | `#111827` | Primary text |
+| `--app-text-secondary` | `#6b7280` | Labels, secondary text |
+| `--app-border` | `#e5e7eb` | Element borders |
+| `--app-blue` | `#3b82f6` | Primary action, links |
+| `--app-blue-light` | `#eff6ff` | Active element backgrounds |
+| `--app-green` | `#10b981` | Success, confirmation |
+| `--app-red` | `#ef4444` | Error, destructive actions |
+
+  </Card>
+  <Card title="Dark mode" icon="moon">
+
+| Token | Value | Usage |
+|---|---|---|
+| `--app-bg` | `#111827` | App background |
+| `--app-header-bg` | `#1f2937` | Headers and cards |
+| `--app-sidebar-bg` | `#1f2937` | Sidebar background |
+| `--app-hover` | `#374151` | Hover states, inputs |
+| `--app-text-primary` | `#f9fafb` | Primary text |
+| `--app-text-secondary` | `#9ca3af` | Labels, secondary text |
+| `--app-border` | `#374151` | Element borders |
+| `--app-blue` | `#60a5fa` | Primary action, links |
+| `--app-blue-light` | `#1e3a8a` | Active element backgrounds |
+| `--app-green` | `#34d399` | Success, confirmation |
+| `--app-red` | `#f87171` | Error, destructive actions |
+
+  </Card>
+</Columns>
+
+Token switching is handled by `next-themes`. The `:root` and `.dark` selectors map to the light and dark token sets respectively.
+
+### Color palette
+
+<Color variant="compact">
+  <Color.Item name="--app-blue" value="#3b82f6" />
+  <Color.Item name="--app-green" value="#10b981" />
+  <Color.Item name="--app-red" value="#ef4444" />
+  <Color.Item name="--app-blue (dark)" value="#60a5fa" />
+  <Color.Item name="--app-green (dark)" value="#34d399" />
+  <Color.Item name="--app-red (dark)" value="#f87171" />
+</Color>
+
+### Typography
+
+- **Font family**: `system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`
+- **Base size**: 16px
+- **Font weights**: 400 (normal), 500 (medium)
+- **Line height**: 1.5
+
+### Spacing scale
+
+| Scale | px | rem |
+|---|---|---|
+| 2 | 8px | 0.5rem |
+| 3 | 12px | 0.75rem |
+| 4 | 16px | 1rem |
+| 6 | 24px | 1.5rem |
+| 8 | 32px | 2rem |
+
+### Border radius
+
+| Name | Value | Usage |
+|---|---|---|
+| `sm` | 6px | Small elements |
+| `md` | 8px | Medium elements |
+| `lg` | 10px | Standard elements |
+| `xl` | 14px | Large elements |
+| `full` | 9999px | Circular / pill shapes |

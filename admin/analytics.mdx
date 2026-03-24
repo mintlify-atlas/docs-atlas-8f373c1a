@@ -1,0 +1,154 @@
+---
+title: Analytics
+description: System-wide statistics, charts, and usage metrics for AirGuide administrators.
+---
+
+The analytics page at `/admin/analytics` provides a live snapshot of the AirGuide platform — user counts, building breakdowns, event schedules, access trends, and popular routes.
+
+All chart and stats data is loaded on mount via `Promise.all` inside `loadChartsData()`. A full-page spinner is shown while both `loading` (dashboard stats) and `loadingCharts` (chart data) are pending.
+
+## Stats cards
+
+Four summary cards appear at the top of the page, sourced from `GET /api/analytics/dashboard`:
+
+| Card | Value | Source field |
+|---|---|---|
+| Total Usuarios | All registered users | `dashboardStats.usuarios.total` |
+| Edificios Activos | Buildings with `activo: true` | `dashboardStats.edificios.activos` |
+| Eventos Activos | Currently active events | `dashboardStats.eventos.activos` |
+| Rutas Creadas | Total navigation routes | `dashboardStats.rutas.total` |
+
+Each card also shows a static trend indicator (e.g. `+12%`) alongside a `TrendingUp` icon.
+
+## Charts
+
+Charts are built with [Recharts](https://recharts.org) and wrapped in `ResponsiveContainer` at a fixed height of `300px`.
+
+### Edificios por tipo
+
+A **PieChart** showing the distribution of buildings by type (`academico`, `administrativo`, `recreativo`).
+
+- **Endpoint:** `GET /api/analytics/edificios-tipo`
+- **Data key:** `cantidad`; **Name key:** `tipo`
+- **Colors:** `['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444']` (cycling)
+- Labels render as `{tipo}: {percent}%` directly on the pie slices.
+
+```ts
+// useAnalytics.ts
+const fetchEdificiosPorTipo = async () => {
+  const response = await fetch(`${API_URL}/analytics/edificios-tipo`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  return await response.json();
+  // Returns: [{ tipo: 'academico', cantidad: 12 }, ...]
+};
+```
+
+### Usuarios por rol
+
+A **BarChart** breaking down users by role (`admin`, `alumno`, etc.).
+
+- **Endpoint:** `GET /api/analytics/usuarios-rol`
+- **X-axis:** `rol`; **Bar data key:** `cantidad`
+- Bars have rounded top corners (`radius={[8, 8, 0, 0]}`) and are filled `#3B82F6`.
+- Tooltip and grid lines respect the app's CSS theme variables.
+
+```ts
+const fetchUsuariosPorRol = async () => {
+  const response = await fetch(`${API_URL}/analytics/usuarios-rol`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  return await response.json();
+  // Returns: [{ rol: 'alumno', cantidad: 240 }, { rol: 'admin', cantidad: 3 }]
+};
+```
+
+### Accesos en los últimos 30 días
+
+A **LineChart** spanning the full width of the grid (`lg:col-span-2`) showing daily access counts over the past 30 days.
+
+- **Endpoint:** `GET /api/analytics/accesos-timeline?days=30`
+- **X-axis:** `fecha` (formatted as `DD/MM` in tick labels; full `es-MX` date in tooltip)
+- **Line data key:** `accesos`; stroke `#3B82F6`, width `2`
+
+```ts
+const fetchAccesosTimeline = async (days = 30) => {
+  const response = await fetch(
+    `${API_URL}/analytics/accesos-timeline?days=${days}`,
+    { headers: { 'Authorization': `Bearer ${token}` } }
+  );
+  return await response.json();
+  // Returns: [{ fecha: '2026-02-23T00:00:00.000Z', accesos: 47 }, ...]
+};
+```
+
+## Data tables
+
+### Próximos eventos
+
+Shows up to 5 upcoming events sourced from `GET /api/analytics/eventos-proximos`. Each row displays:
+
+- Event name
+- Start date (`es-MX` locale)
+- Associated building name
+- A **Público** or **Privado** badge
+
+### Rutas más populares
+
+Shows up to 5 most-used routes sourced from `GET /api/analytics/rutas-populares`. Each row displays:
+
+- Rank number (1–5)
+- Route label: `{ruta.origen} → {ruta.destino}`
+- Usage count: `{ruta.usos} usos`
+
+## General stats grid
+
+Below the charts, a 4-column grid shows additional counters from `dashboardStats`:
+
+| Stat | Source field |
+|---|---|
+| Total Salones | `dashboardStats.salones` |
+| Profesores | `dashboardStats.profesores` |
+| Cubículos | `dashboardStats.cubiculos` |
+| Total Accesos | `dashboardStats.totalAccesos` |
+
+## Pending users alert
+
+If `dashboardStats.usuarios.pendientes > 0`, a yellow alert banner appears at the bottom of the page:
+
+```
+Usuarios Pendientes de Aprobación
+Hay {N} usuarios esperando validación
+```
+
+<Tip>
+  Click through to the [dashboard](/admin/dashboard) to review and act on pending users directly from the validation table.
+</Tip>
+
+## `DashboardStats` interface
+
+```ts
+interface DashboardStats {
+  usuarios: {
+    total: number;
+    activos: number;
+    pendientes: number;
+  };
+  edificios: {
+    total: number;
+    activos: number;
+  };
+  salones: number;
+  profesores: number;
+  cubiculos: number;
+  eventos: {
+    total: number;
+    activos: number;
+  };
+  rutas: {
+    total: number;
+    activas: number;
+  };
+  totalAccesos: number;
+}
+```
