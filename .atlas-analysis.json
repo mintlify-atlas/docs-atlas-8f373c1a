@@ -1,0 +1,135 @@
+{
+  "projectType": "saas",
+  "projectName": "AirGuide",
+  "projectDescription": "A university campus navigation platform that lets students explore buildings, events, and routes on an interactive map, with an admin dashboard for managing campus data.",
+  "theme": "palm",
+  "primaryColor": "#3b82f6",
+  "lightColor": "#eff6ff",
+  "darkColor": "#1e3a8a",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "architecture"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/map",
+              "features/buildings",
+              "features/events",
+              "features/routing"
+            ]
+          },
+          {
+            "group": "User Guide",
+            "pages": [
+              "guide/registration",
+              "guide/navigation",
+              "guide/searching"
+            ]
+          },
+          {
+            "group": "Admin Guide",
+            "pages": [
+              "admin/dashboard",
+              "admin/buildings",
+              "admin/events",
+              "admin/salones",
+              "admin/analytics",
+              "admin/user-validation"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/setup",
+              "development/environment",
+              "development/tech-stack"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": [
+              "api/auth/login",
+              "api/auth/register"
+            ]
+          },
+          {
+            "group": "Buildings",
+            "pages": [
+              "api/edificios/list",
+              "api/edificios/create",
+              "api/edificios/update",
+              "api/edificios/delete"
+            ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "api/eventos/list",
+              "api/eventos/create",
+              "api/eventos/update",
+              "api/eventos/delete"
+            ]
+          },
+          {
+            "group": "Classrooms",
+            "pages": [
+              "api/salones/overview"
+            ]
+          },
+          {
+            "group": "Analytics",
+            "pages": [
+              "api/analytics/dashboard",
+              "api/analytics/endpoints"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Interactive map with building and event markers powered by Leaflet",
+    "Turn-by-turn route calculation between campus buildings",
+    "Role-based access control for students and administrators",
+    "Admin dashboard for managing buildings, events, and classrooms",
+    "Real-time analytics with charts for usage, accesses, and popular routes",
+    "User registration with admin approval workflow",
+    "Dark mode support with a consistent design system",
+    "Full-text search across buildings and events"
+  ],
+  "publicApiSurface": [
+    "POST /api/auth/login",
+    "POST /api/auth/register",
+    "GET /api/edificios",
+    "POST /api/edificios",
+    "PUT /api/edificios/:id",
+    "DELETE /api/edificios/:id",
+    "GET /api/eventos",
+    "POST /api/eventos",
+    "PUT /api/eventos/:id",
+    "DELETE /api/eventos/:id",
+    "GET /api/salones",
+    "GET /api/analytics/dashboard",
+    "GET /api/analytics/edificios-tipo",
+    "GET /api/analytics/eventos-proximos",
+    "GET /api/analytics/accesos-recientes",
+    "GET /api/analytics/accesos-timeline",
+    "GET /api/analytics/usuarios-rol",
+    "GET /api/analytics/rutas-populares"
+  ]
+}
